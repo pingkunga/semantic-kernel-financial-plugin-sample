@@ -1,0 +1,6 @@
+@FinancialChatBot_HostAddress = http://localhost:5181
+
+GET {{FinancialChatBot_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
