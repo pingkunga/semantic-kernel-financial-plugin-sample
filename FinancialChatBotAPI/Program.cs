@@ -17,6 +17,7 @@ internal class Program
         builder.Services.AddSingleton(provider =>
         {
             var config = builder.Configuration;
+
             var kernelBuilder = Kernel.CreateBuilder();
 
             // Configure AI model
@@ -25,14 +26,19 @@ internal class Program
                 kernelBuilder.AddAzureOpenAIChatCompletion(
                     deploymentName: "gpt-35-turbo",
                     endpoint: config["AzureOpenAI:Endpoint"]!,
-                    apiKey: config["AzureOpenAI:ApiKey"]!
+                    apiKey: config["AzureOpenAI:ApiKey"],
+                    httpClient: new() { Timeout = TimeSpan.FromMinutes(5) }
                 );
             }
             else if (config["AIBackEnd"] == "Ollama")
             {
                 kernelBuilder.AddOllamaChatCompletion(
                     modelId: config["Ollama:ModelId"]!,
-                    endpoint: new Uri(config["Ollama:Endpoint"]!)
+                    httpClient: new()
+                    {
+                        BaseAddress = new Uri(config["Ollama:Endpoint"]!),
+                        Timeout = TimeSpan.FromMinutes(5)
+                    }
                 );
             }
 
@@ -91,8 +97,6 @@ internal class Program
         });
 
         builder.AddObservability();
-
-       
 
         var app = builder.Build();
 
