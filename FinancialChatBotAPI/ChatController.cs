@@ -17,15 +17,26 @@ using System.Text.Json.Serialization; // Add this as well
 public class ChatController : ControllerBase
 {
     private readonly Kernel _kernel;
+    private readonly ILogger<ChatController> _logger;
     private readonly PromptExecutionSettings _executionSettings;
 
-    public ChatController()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ChatController"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance for logging information and errors.</param>
+    /// <param name="kernel">The Semantic Kernel instance for AI operations.</param>
+    public ChatController(ILogger<ChatController> logger
+                        , Kernel kernel)
     {
+        _logger = logger;
+        _kernel = kernel;
+        
         var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
 
+        /*
         var builder = Kernel.CreateBuilder();
 
         // Configure AI model (Azure OpenAI or Ollama)
@@ -44,11 +55,12 @@ public class ChatController : ControllerBase
                 endpoint: new Uri(config["Ollama:Endpoint"]!)
             );
         }
-
-        // Add financial plugins
-        builder.Plugins.AddFromType<FinancialPlugin>();
-
+        // Alternatively, if FinancialPlugin has a parameterless constructor
+        //builder.Plugins.AddFromType<FinancialPlugin>();
+        
+        // Build the kernel
         _kernel = builder.Build();
+        */
 
         // Enable automatic function calling
         if (config["AIBackEnd"] == "OpenAI")
@@ -71,6 +83,7 @@ public class ChatController : ControllerBase
             // Default fallback
             _executionSettings = new PromptExecutionSettings();
         }
+        _logger.LogInformation("ChatController initialized with AI backend: {AIBackEnd}", config["AIBackEnd"]);
     }
 
     /// <summary>
@@ -92,11 +105,11 @@ public class ChatController : ControllerBase
 
         try
         {
-            Console.WriteLine($"🚀 Chat request received: {request.Query}");
+            _logger.LogInformation("🚀 Chat request received: {Query}", request.Query);
 
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
-            Console.WriteLine("📡 Sending request to AI with function calling enabled...");
+            _logger.LogInformation("📡 Sending request to AI with function calling enabled...");
             var chatHistory = new ChatHistory();
             chatHistory.AddSystemMessage(
                 "You are a helpful financial assistant. "
@@ -111,15 +124,16 @@ public class ChatController : ControllerBase
                 kernel: _kernel
             );
 
-            Console.WriteLine($"✅ AI response received: {result.Content?.Substring(0, Math.Min(100, result.Content?.Length ?? 0))}...");
-
+            _logger.LogInformation(
+                "✅ AI response received: {Response}",
+                result.Content?.Substring(0, Math.Min(100, result.Content?.Length ?? 0))
+            );
 
             return Ok(new ChatResponse { Response = result.Content ?? "No response generated." });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error in Chat method: {ex.Message}");
-
+            _logger.LogError("❌ Error in Chat method: {Error}", ex.Message);
             return StatusCode(
                 500,
                 new
@@ -167,26 +181,27 @@ public class ChatController : ControllerBase
             {
                 foreach (var function in plugin)
                 {
-                    functionsList.Add(new
-                    {
-                        PluginName = plugin.Name,
-                        FunctionName = function.Name,
-                        Description = function.Description,
-                        Parameters = function.Metadata.Parameters.Select(p => new
+                    functionsList.Add(
+                        new
                         {
-                            Name = p.Name,
-                            Description = p.Description,
-                            Type = p.ParameterType?.Name
-                        })
-                    });
+                            PluginName = plugin.Name,
+                            FunctionName = function.Name,
+                            Description = function.Description,
+                            Parameters = function.Metadata.Parameters.Select(
+                                p =>
+                                    new
+                                    {
+                                        Name = p.Name,
+                                        Description = p.Description,
+                                        Type = p.ParameterType?.Name
+                                    }
+                            )
+                        }
+                    );
                 }
             }
 
-            return Ok(new
-            {
-                TotalFunctions = functionsList.Count,
-                Functions = functionsList
-            });
+            return Ok(new { TotalFunctions = functionsList.Count, Functions = functionsList });
         }
         catch (Exception ex)
         {
@@ -194,42 +209,54 @@ public class ChatController : ControllerBase
         }
     }
 
-     /// <summary>
+    /// <summary>
     /// Test function calling directly
     /// </summary>
     /// <param name="functionName">Name of the function to test</param>
     /// <param name="parameters">Parameters as JSON string</param>
     /// <returns>Function execution result</returns>
     [HttpPost("test-function")]
-    public async Task<IActionResult> TestFunction([FromQuery] string functionName, [FromBody] Dictionary<string, object> parameters)
+    public async Task<IActionResult> TestFunction(
+        [FromQuery] string functionName,
+        [FromBody] Dictionary<string, object> parameters
+    )
     {
         try
         {
-            Console.WriteLine(
-                $"🧪 Testing function: {functionName} with parameters: {JsonSerializer.Serialize(parameters)}"
+            _logger.LogInformation(
+                "🧪 Testing function: {FunctionName} with parameters: {Parameters}",
+                functionName,
+                JsonSerializer.Serialize(parameters)
             );
 
             var function = _kernel.Plugins.GetFunction("FinancialPlugin", functionName);
             var arguments = new KernelArguments();
-            
+
             foreach (var param in parameters)
             {
                 arguments[param.Key] = param.Value;
             }
 
             var result = await function.InvokeAsync(_kernel, arguments);
-            
-            Console.WriteLine($"✅ Function test completed: {result.GetValue<object>()?.ToString()}");
 
-            return Ok(new { 
-                FunctionName = functionName,
-                Parameters = parameters,
-                Result = result.GetValue<object>()?.ToString() 
-            });
+            _logger.LogInformation(
+                "✅ Function test completed: {FunctionName} with result: {Result}",
+                functionName,
+                result.GetValue<object>()?.ToString()
+            );
+
+            return Ok(
+                new
+                {
+                    FunctionName = functionName,
+                    Parameters = parameters,
+                    Result = result.GetValue<object>()?.ToString()
+                }
+            );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Function test failed: {ex.Message}");
+            _logger.LogError("❌ Error in TestFunction: {Error}", ex.Message);
             return StatusCode(500, new { Error = ex.Message });
         }
     }

@@ -8,10 +8,16 @@ using System.Text.Json;
 public class FinancialPlugin
 {
     private readonly HttpClient _httpClient;
-    
-    public FinancialPlugin()
+    private readonly ILogger<FinancialPlugin> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FinancialPlugin"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance for logging information and errors.</param>
+    public FinancialPlugin(ILogger<FinancialPlugin> logger)
     {
         _httpClient = new HttpClient();
+        _logger = logger;
     }
 
     /// <summary>
@@ -22,11 +28,12 @@ public class FinancialPlugin
     [KernelFunction]
     [Description("Get the current stock price for a given stock symbol")]
     public async Task<string> GetStockPriceAsync(
-        [Description("The stock symbol to look up (e.g., AAPL, MSFT, GOOGL)")] string symbol)
+        [Description("The stock symbol to look up (e.g., AAPL, MSFT, GOOGL)")] string symbol
+    )
     {
         try
         {
-            Console.WriteLine($"🎯 GetStockPriceAsync called with symbol: {symbol}");
+            _logger.LogInformation("🎯 GetStockPriceAsync called with symbol: {Symbol}", symbol);
 
             // For demo purposes, return mock data
             // In a real implementation, you would call a financial API like Alpha Vantage, Yahoo Finance, etc.
@@ -48,16 +55,18 @@ public class FinancialPlugin
                 var price = mockPrices[upperSymbol];
                 var change = Math.Round((decimal)(new Random().NextDouble() * 10 - 5), 2);
                 var changePercent = Math.Round(change / price * 100, 2);
-                
-                return JsonSerializer.Serialize(new
-                {
-                    Symbol = upperSymbol,
-                    Price = price,
-                    Change = change,
-                    ChangePercent = changePercent,
-                    Currency = "USD",
-                    LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
-                });
+
+                return JsonSerializer.Serialize(
+                    new
+                    {
+                        Symbol = upperSymbol,
+                        Price = price,
+                        Change = change,
+                        ChangePercent = changePercent,
+                        Currency = "USD",
+                        LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+                    }
+                );
             }
             else
             {
@@ -80,23 +89,46 @@ public class FinancialPlugin
     {
         try
         {
-
-            Console.WriteLine("🎯 GetMarketSummaryAsync called");
+            _logger.LogInformation("🎯 GetMarketSummaryAsync called");
             // Mock market data - in real implementation, call financial APIs
             var marketData = new
             {
                 LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
                 Indices = new[]
                 {
-                    new { Name = "S&P 500", Symbol = "SPX", Value = 4150.48m, Change = 15.25m, ChangePercent = 0.37m },
-                    new { Name = "Dow Jones", Symbol = "DJI", Value = 33875.40m, Change = -45.85m, ChangePercent = -0.14m },
-                    new { Name = "NASDAQ", Symbol = "IXIC", Value = 12853.98m, Change = 25.60m, ChangePercent = 0.20m }
+                    new
+                    {
+                        Name = "S&P 500",
+                        Symbol = "SPX",
+                        Value = 4150.48m,
+                        Change = 15.25m,
+                        ChangePercent = 0.37m
+                    },
+                    new
+                    {
+                        Name = "Dow Jones",
+                        Symbol = "DJI",
+                        Value = 33875.40m,
+                        Change = -45.85m,
+                        ChangePercent = -0.14m
+                    },
+                    new
+                    {
+                        Name = "NASDAQ",
+                        Symbol = "IXIC",
+                        Value = 12853.98m,
+                        Change = 25.60m,
+                        ChangePercent = 0.20m
+                    }
                 },
                 MarketStatus = "Open",
                 TradingSession = "Regular Hours"
             };
 
-            return JsonSerializer.Serialize(marketData, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(
+                marketData,
+                new JsonSerializerOptions { WriteIndented = true }
+            );
         }
         catch (Exception ex)
         {
@@ -118,19 +150,29 @@ public class FinancialPlugin
         [Description("Initial investment amount in dollars")] double principal,
         [Description("Annual interest rate as decimal (e.g., 0.07 for 7%)")] double rate,
         [Description("Number of years for the investment")] int time,
-        [Description("Compounding frequency per year (default: 12 for monthly)")] int compoundFrequency = 12)
+        [Description("Compounding frequency per year (default: 12 for monthly)")]
+            int compoundFrequency = 12
+    )
     {
         try
         {
-            Console.WriteLine($"🎯 CalculateCompoundInterest called with Principal: {principal}, Rate: {rate}, Time: {time}, Frequency: {compoundFrequency}");
+            _logger.LogInformation(
+                "🎯 CalculateCompoundInterest called with Principal: {Principal}, Rate: {Rate}, Time: {Time}, Frequency: {Frequency}",
+                principal,
+                rate,
+                time,
+                compoundFrequency
+            );
+
             if (principal <= 0 || rate < 0 || time <= 0 || compoundFrequency <= 0)
             {
                 return "Invalid input: All values must be positive, and rate cannot be negative.";
             }
 
-            var amount = principal * Math.Pow(1 + (rate / compoundFrequency), compoundFrequency * time);
+            var amount =
+                principal * Math.Pow(1 + (rate / compoundFrequency), compoundFrequency * time);
             var interest = amount - principal;
-            
+
             var result = new
             {
                 InitialInvestment = Math.Round(principal, 2),
@@ -142,7 +184,10 @@ public class FinancialPlugin
                 EffectiveAnnualReturn = Math.Round(((amount / principal) - 1) * 100 / time, 2) + "%"
             };
 
-            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(
+                result,
+                new JsonSerializerOptions { WriteIndented = true }
+            );
         }
         catch (Exception ex)
         {
@@ -158,11 +203,15 @@ public class FinancialPlugin
     [KernelFunction]
     [Description("Get financial ratios and basic analysis for a stock symbol")]
     public async Task<string> GetFinancialAnalysisAsync(
-        [Description("Stock symbol to analyze (e.g., AAPL, MSFT)")] string symbol)
+        [Description("Stock symbol to analyze (e.g., AAPL, MSFT)")] string symbol
+    )
     {
         try
         {
-            Console.WriteLine($"🎯 GetFinancialAnalysisAsync called with symbol: {symbol}");
+            _logger.LogInformation(
+                "🎯 GetFinancialAnalysisAsync called with symbol: {Symbol}",
+                symbol
+            );
             // Mock financial analysis data
             var mockAnalysis = new Dictionary<string, object>
             {
@@ -201,7 +250,10 @@ public class FinancialPlugin
             var upperSymbol = symbol.ToUpperInvariant();
             if (mockAnalysis.ContainsKey(upperSymbol))
             {
-                return JsonSerializer.Serialize(mockAnalysis[upperSymbol], new JsonSerializerOptions { WriteIndented = true });
+                return JsonSerializer.Serialize(
+                    mockAnalysis[upperSymbol],
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
             }
             else
             {
@@ -226,17 +278,44 @@ public class FinancialPlugin
     public string ConvertCurrency(
         [Description("Amount to convert")] double amount,
         [Description("Source currency code (e.g., USD, EUR, GBP)")] string fromCurrency,
-        [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency)
+        [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency
+    )
     {
         try
         {
-            Console.WriteLine($"🎯 ConvertCurrency called with Amount: {amount}, From: {fromCurrency}, To: {toCurrency}");
+            _logger.LogInformation(
+                "🎯 ConvertCurrency called with Amount: {Amount}, From: {FromCurrency}, To: {ToCurrency}",
+                amount,
+                fromCurrency,
+                toCurrency
+            );
             // Mock exchange rates - in real implementation, call currency API
             var exchangeRates = new Dictionary<string, Dictionary<string, double>>
             {
-                ["USD"] = new() { ["EUR"] = 0.85, ["GBP"] = 0.73, ["JPY"] = 110.0, ["CAD"] = 1.25, ["AUD"] = 1.35 },
-                ["EUR"] = new() { ["USD"] = 1.18, ["GBP"] = 0.86, ["JPY"] = 129.5, ["CAD"] = 1.47, ["AUD"] = 1.59 },
-                ["GBP"] = new() { ["USD"] = 1.37, ["EUR"] = 1.16, ["JPY"] = 150.7, ["CAD"] = 1.71, ["AUD"] = 1.85 }
+                ["USD"] = new()
+                {
+                    ["EUR"] = 0.85,
+                    ["GBP"] = 0.73,
+                    ["JPY"] = 110.0,
+                    ["CAD"] = 1.25,
+                    ["AUD"] = 1.35
+                },
+                ["EUR"] = new()
+                {
+                    ["USD"] = 1.18,
+                    ["GBP"] = 0.86,
+                    ["JPY"] = 129.5,
+                    ["CAD"] = 1.47,
+                    ["AUD"] = 1.59
+                },
+                ["GBP"] = new()
+                {
+                    ["USD"] = 1.37,
+                    ["EUR"] = 1.16,
+                    ["JPY"] = 150.7,
+                    ["CAD"] = 1.71,
+                    ["AUD"] = 1.85
+                }
             };
 
             var fromUpper = fromCurrency.ToUpperInvariant();
@@ -244,18 +323,23 @@ public class FinancialPlugin
 
             if (fromUpper == toUpper)
             {
-                return JsonSerializer.Serialize(new
-                {
-                    Amount = amount,
-                    FromCurrency = fromUpper,
-                    ToCurrency = toUpper,
-                    ConvertedAmount = amount,
-                    ExchangeRate = 1.0,
-                    Message = "Same currency conversion"
-                });
+                return JsonSerializer.Serialize(
+                    new
+                    {
+                        Amount = amount,
+                        FromCurrency = fromUpper,
+                        ToCurrency = toUpper,
+                        ConvertedAmount = amount,
+                        ExchangeRate = 1.0,
+                        Message = "Same currency conversion"
+                    }
+                );
             }
 
-            if (!exchangeRates.ContainsKey(fromUpper) || !exchangeRates[fromUpper].ContainsKey(toUpper))
+            if (
+                !exchangeRates.ContainsKey(fromUpper)
+                || !exchangeRates[fromUpper].ContainsKey(toUpper)
+            )
             {
                 return $"Exchange rate not available for {fromCurrency} to {toCurrency}. Available currencies: USD, EUR, GBP, JPY, CAD, AUD";
             }
@@ -263,15 +347,18 @@ public class FinancialPlugin
             var rate = exchangeRates[fromUpper][toUpper];
             var convertedAmount = Math.Round(amount * rate, 2);
 
-            return JsonSerializer.Serialize(new
-            {
-                Amount = amount,
-                FromCurrency = fromUpper,
-                ToCurrency = toUpper,
-                ConvertedAmount = convertedAmount,
-                ExchangeRate = rate,
-                LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
-            }, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(
+                new
+                {
+                    Amount = amount,
+                    FromCurrency = fromUpper,
+                    ToCurrency = toUpper,
+                    ConvertedAmount = convertedAmount,
+                    ExchangeRate = rate,
+                    LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+                },
+                new JsonSerializerOptions { WriteIndented = true }
+            );
         }
         catch (Exception ex)
         {
