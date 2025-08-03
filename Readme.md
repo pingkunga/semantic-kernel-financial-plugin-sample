@@ -40,3 +40,11 @@
 - "แลกเงิน 1,000 ดอลลาร์อเมริกัน เป็นสกุลยูโร"
 
 ***
+
+
+# Build 
+
+```
+docker build -t pingkunga/financialchatbotapi:0.0.1 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.1
+```
