@@ -1,4 +1,4 @@
-/* html, body {
+html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -111,21 +111,21 @@ code {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
-} */
+}
 
-body {
+/* body {
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
-}
+} */
 
-header {
+/* header {
     background-color: #007bff;
     color: white;
     padding: 10px 20px;
     text-align: center;
-}
+} */
 
 h1 {
     margin: 0;
