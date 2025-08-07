@@ -1,0 +1,252 @@
+@page "/chat"
+@using FinancialChatBotBlazerUI.Services
+@inject ChatService ChatService
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Financial ChatBot</PageTitle>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>💰 Financial Assistant (SignalR)</h3>
+        <div class="connection-status">
+            Status: <span class="badge @(ChatService.IsConnected ? "bg-success" : "bg-danger")">
+                @(ChatService.IsConnected ? "Connected" : "Disconnected")
+            </span>
+        </div>
+    </div>
+
+    <div class="chat-messages" @ref="chatContainer">
+        @foreach (var message in messages)
+        {
+            <div class="message @(GetMessageClass(message))">
+                <div class="message-content">
+                    @if (message.IsUser)
+                    {
+                        <div class="message-text">@message.Content</div>
+                        <div class="user-avatar">👤</div>
+                    }
+                    else
+                    {
+                        <div class="@(GetAvatarClass(message))">@GetAvatar(message)</div>
+                        <div class="message-text">
+                            @((MarkupString)FormatMessage(message.Content))
+                        </div>
+                    }
+                </div>
+                <div class="message-time">
+                    @message.Timestamp.ToString("HH:mm")
+                </div>
+            </div>
+        }
+        
+        @if (isAITyping)
+        {
+            <div class="message bot-message">
+                <div class="message-content">
+                    <div class="bot-avatar">🤖</div>
+                    <div class="message-text">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="chat-input">
+        <div class="quick-suggestions">
+            @foreach (var suggestion in quickSuggestions)
+            {
+                <button class="btn btn-outline-secondary btn-sm suggestion-btn" 
+                        @onclick="() => SendSuggestion(suggestion)"
+                        disabled="@(!ChatService.IsConnected)">
+                    @suggestion
+                </button>
+            }
+        </div>
+        <br />
+        <div class="input-group">
+            <input @bind="currentMessage" 
+                   @onkeypress="HandleKeyPress"
+                   @oninput="HandleTyping"
+                   placeholder="Ask about stocks, market data, or financial calculations..." 
+                   class="form-control" 
+                   disabled="@(!ChatService.IsConnected)" />
+            <button class="btn btn-primary" 
+                    @onclick="SendMessage" 
+                    disabled="@(!ChatService.IsConnected || string.IsNullOrWhiteSpace(currentMessage))">
+                📤
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ChatMessage> messages = new();
+    private string currentMessage = "";
+    private bool isAITyping = false;
+    private ElementReference chatContainer;
+    private System.Timers.Timer? typingTimer;
+
+    private readonly string[] quickSuggestions = new[]
+    {
+        "AAPL stock price",
+        "Market summary",
+        "Analyze MSFT", 
+        "Convert USD to EUR"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Subscribe to events
+            ChatService.OnMessageReceived += OnMessageReceived;
+            ChatService.OnUserTyping += OnUserTyping;
+
+            // Connect to SignalR hub
+            await ChatService.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            // Add error message
+            messages.Add(new ChatMessage
+            {
+                User = "System",
+                Content = $"❌ Failed to connect to chat service: {ex.Message}",
+                MessageType = "error",
+                Timestamp = DateTime.Now,
+                IsUser = false
+            });
+        }
+    }
+
+    private void OnMessageReceived(ChatMessage message)
+    {
+        messages.Add(message);
+        InvokeAsync(StateHasChanged);
+        InvokeAsync(ScrollToBottom);
+    }
+
+    private void OnUserTyping(string connectionId, bool isTyping)
+    {
+        if (connectionId != ChatService.ConnectionId && connectionId == "AI")
+        {
+            isAITyping = isTyping;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await ScrollToBottom();
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task HandleTyping()
+    {
+        if (!ChatService.IsConnected) return;
+
+        await ChatService.SendTypingAsync(true);
+        
+        // Reset typing timer
+        typingTimer?.Stop();
+        typingTimer = new System.Timers.Timer(1000);
+        typingTimer.Elapsed += async (sender, e) =>
+        {
+            await ChatService.SendTypingAsync(false);
+            typingTimer?.Stop();
+        };
+        typingTimer.Start();
+    }
+
+    private async Task SendSuggestion(string suggestion)
+    {
+        currentMessage = suggestion;
+        await SendMessage();
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage) || !ChatService.IsConnected)
+            return;
+
+        try
+        {
+            await ChatService.SendMessageAsync(currentMessage.Trim());
+            currentMessage = "";
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new ChatMessage
+            {
+                User = "System",
+                Content = $"❌ Failed to send message: {ex.Message}",
+                MessageType = "error",
+                Timestamp = DateTime.Now,
+                IsUser = false
+            });
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await Task.Delay(50);
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", chatContainer);
+    }
+
+    private string GetMessageClass(ChatMessage message) =>
+        message.MessageType switch
+        {
+            "user" => "user-message",
+            "bot" => "bot-message", 
+            "system" => "system-message",
+            "error" => "error-message",
+            _ => "bot-message"
+        };
+
+    private string GetAvatarClass(ChatMessage message) =>
+        message.MessageType switch
+        {
+            "system" => "system-avatar",
+            "error" => "error-avatar",
+            _ => "bot-avatar"
+        };
+
+    private string GetAvatar(ChatMessage message) =>
+        message.MessageType switch
+        {
+            "system" => "ℹ️",
+            "error" => "❌",
+            _ => "🤖"
+        };
+
+    private string FormatMessage(string content)
+    {
+        return content.Replace("\n", "<br>");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        typingTimer?.Stop();
+        typingTimer?.Dispose();
+        
+        if (ChatService != null)
+        {
+            ChatService.OnMessageReceived -= OnMessageReceived;
+            ChatService.OnUserTyping -= OnUserTyping;
+            await ChatService.DisposeAsync();
+        }
+    }
+}
