@@ -58,6 +58,7 @@
     </div>
 
     <div class="chat-input">
+        <span>Suggest Prompt</span>
         <div class="quick-suggestions">
             @foreach (var suggestion in quickSuggestions)
             {
@@ -68,7 +69,7 @@
                 </button>
             }
         </div>
-        <br />
+
         <div class="input-group">
             <input @bind="currentMessage" 
                    @onkeypress="HandleKeyPress"
@@ -95,9 +96,14 @@
     private readonly string[] quickSuggestions = new[]
     {
         "AAPL stock price",
+        "ราคา AAPL",
         "Market summary",
         "Analyze MSFT", 
-        "Convert USD to EUR"
+        "Calculate ROI for Tesla",
+        "If I invest $15,000 at 7% annual interest for 10 years, what will it be worth?",
+        "ถ้าฉันลงทุน 15,000 ดอลลาร์ ด้วยอัตราดอกเบี้ย 7% ต่อปี เป็นเวลา 10 ปี มันจะมีค่าเท่าไหร่?",
+        "Convert 1000 USD to EUR",
+        "แลกเงิน 1,000 ดอลลาร์อเมริกัน เป็นสกุลยูโร"
     };
 
     protected override async Task OnInitializedAsync()
