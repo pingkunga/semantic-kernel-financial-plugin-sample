@@ -45,6 +45,11 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.1 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.1
+docker build -t pingkunga/financialchatbotapi:0.0.3 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.3
+```
+
+```
+docker build -t pingkunga/financialchatbotblazerui:0.0.3 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.3
 ```
