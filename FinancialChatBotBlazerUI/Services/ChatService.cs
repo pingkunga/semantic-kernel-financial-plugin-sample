@@ -13,6 +13,7 @@ public class ChatService : IAsyncDisposable
     public ChatService()
     {
         _hubUrl = "https://aiappapi.pingkunga.dev/chathub"; // Your API URL
+        //_hubUrl = "http://localhost:5181/chathub"; // Your API URL
     }
 
     private void InitializeConnection()
@@ -26,59 +27,78 @@ public class ChatService : IAsyncDisposable
             .Build();
 
         // Subscribe to SignalR events
-        _hubConnection.On<string, string, string>("ReceiveMessage", (user, message, type) =>
-        {
-            if (_disposed) return;
-            
-            var chatMessage = new ChatMessage
+        _hubConnection.On<string, string, string>(
+            "ReceiveMessage",
+            (user, message, type) =>
             {
-                User = user,
-                Content = message,
-                MessageType = type,
-                Timestamp = DateTime.Now,
-                IsUser = type == "user"
-            };
+                if (_disposed)
+                    return;
 
-            _messages.Add(chatMessage);
-            OnMessageReceived?.Invoke(chatMessage);
-        });
+                var chatMessage = new ChatMessage
+                {
+                    User = user,
+                    Content = message,
+                    MessageType = type,
+                    Timestamp = DateTime.Now,
+                    IsUser = type == "user"
+                };
 
-        _hubConnection.On<string, bool>("UserTyping", (connectionId, isTyping) =>
-        {
-            if (_disposed) return;
-            OnUserTyping?.Invoke(connectionId, isTyping);
-        });
+                _messages.Add(chatMessage);
+                OnMessageReceived?.Invoke(chatMessage);
+            }
+        );
 
-        _hubConnection.On<string, string>("UserJoined", (userName, connectionId) =>
-        {
-            if (_disposed) return;
-            OnUserJoined?.Invoke(userName, connectionId);
-        });
+        _hubConnection.On<string, string, bool>(
+            "UserTyping",
+            (connectionId, role, isTyping) =>
+            {
+                if (_disposed)
+                    return;
+                OnUserTyping?.Invoke(connectionId, role, isTyping);
+            }
+        );
 
-        _hubConnection.On<string>("UserLeft", (connectionId) =>
-        {
-            if (_disposed) return;
-            OnUserLeft?.Invoke(connectionId);
-        });
+        _hubConnection.On<string, string>(
+            "UserJoined",
+            (userName, connectionId) =>
+            {
+                if (_disposed)
+                    return;
+                OnUserJoined?.Invoke(userName, connectionId);
+            }
+        );
+
+        _hubConnection.On<string>(
+            "UserLeft",
+            (connectionId) =>
+            {
+                if (_disposed)
+                    return;
+                OnUserLeft?.Invoke(connectionId);
+            }
+        );
 
         // Handle reconnection events
         _hubConnection.Reconnecting += (exception) =>
         {
-            if (_disposed) return Task.CompletedTask;
+            if (_disposed)
+                return Task.CompletedTask;
             OnConnectionStateChanged?.Invoke("Reconnecting");
             return Task.CompletedTask;
         };
 
         _hubConnection.Reconnected += (connectionId) =>
         {
-            if (_disposed) return Task.CompletedTask;
+            if (_disposed)
+                return Task.CompletedTask;
             OnConnectionStateChanged?.Invoke("Connected");
             return Task.CompletedTask;
         };
 
         _hubConnection.Closed += (exception) =>
         {
-            if (_disposed) return Task.CompletedTask;
+            if (_disposed)
+                return Task.CompletedTask;
             OnConnectionStateChanged?.Invoke("Disconnected");
             return Task.CompletedTask;
         };
@@ -90,7 +110,7 @@ public class ChatService : IAsyncDisposable
 
     // Events
     public event Action<ChatMessage>? OnMessageReceived;
-    public event Action<string, bool>? OnUserTyping;
+    public event Action<string, string, bool>? OnUserTyping;
     public event Action<string, string>? OnUserJoined;
     public event Action<string>? OnUserLeft;
     public event Action<string>? OnConnectionStateChanged;
@@ -103,7 +123,7 @@ public class ChatService : IAsyncDisposable
         try
         {
             InitializeConnection();
-            
+
             if (_hubConnection?.State == HubConnectionState.Disconnected)
             {
                 await _hubConnection.StartAsync();
