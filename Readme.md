@@ -9,9 +9,13 @@
 
 # Feature 
 
-- [x] Simple Chat Semantic Kernel Financial Plugin + Mock Data
+- [x] Simple Chat Semantic Kernel Financial Plugin + Mock Data As API (FinancialChatBotAPI)
 - [ ] Split Service 
-- [x] Add Open Telemetry
+- [x] Add Open Telemetry Common 
+- [x] Simple Chat UI (Blazer WASM) + Signal R Connect with Backend (FinancialChatBotBlazerUI)
+- [x] FinancialChatBotAPI + Open Telemetry
+- [ ] FinancialChatBotBlazerUI + Open Telemetry
+- [ ] FinancialChatBotAPI Semantic Kernel Chat History 
 
 # Sample Prompt For Test
 
@@ -45,11 +49,11 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.3 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.3
+docker build -t pingkunga/financialchatbotapi:0.0.5 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.5
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.3 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.3
+docker build -t pingkunga/financialchatbotblazerui:0.0.5 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.5
 ```
