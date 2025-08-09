@@ -153,11 +153,108 @@ h1 {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.message bot-message {
-    float: left; 
-    margin-left: 20px; 
-    margin-top: 10px
+/* User message on the left */
+.message.user-message {
+    display: flex;
+    /*flex-direction: row; */ /* Default: left alignment */
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
+
+.message.user-message .message-content {
+    background: #f1f1f1;
+    color: #222;
+    border-radius: 0 16px 16px 16px;
+    margin-right: 40px;
+    margin-left: 0;
+    padding: 10px 16px;
+    max-width: 70%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    text-align: left;
+}
+
+.message.user-message .user-avatar {
+    margin-right: 10px;
+    margin-left: 0;
+    font-size: 1.5em;
+    text-align: right;
+}
+
+.message.user-message .message-time {
+    text-align: left;
+    align-self: flex-start;
+    margin-left: 0;
+    margin-right: auto;
+    font-size: 0.85em;
+    color: #888;
+    padding-top: 2px;
+}
+/* User message on the left */
+
+/* Bot message on the right */
+.message.bot-message {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.message.bot-message .message-content {
+    background: #e6f0ff;
+    color: #222;
+    border-radius: 16px 0 16px 16px;
+    /* margin-left: 40px; */
+    /* margin-right: 0; */
+    padding: 10px 16px;
+    max-width: 70%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    text-align: left;
+}
+
+.message.bot-message .bot-avatar {
+    /* margin-left: 10px;
+    margin-right: 0; */
+    font-size: 1.5em;
+    /* text-align: right; */
+}
+
+.message.bot-message .message-time {
+    /* text-align: right; */
+    align-self: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+    font-size: 0.85em;
+    color: #888;
+    padding-top: 2px;
+}
+/* Bot message on the right */
+
+/* Typing ... */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 20px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #6c757d;
+    border-radius: 50%;
+    display: inline-block;
+    animation: typing-bounce 1s infinite both;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1.2); opacity: 1; }
+}
+/* Typing ... */
 
 .chat-message {
     margin: 10px 0;
