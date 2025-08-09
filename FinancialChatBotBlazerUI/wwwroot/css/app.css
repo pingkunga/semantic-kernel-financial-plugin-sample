@@ -182,13 +182,11 @@ h1 {
 }
 
 .message.user-message .message-time {
-    text-align: left;
-    align-self: flex-start;
-    margin-left: 0;
-    margin-right: auto;
+    /* text-align: left; */
+    align-self: flex-end;
+    margin-right: 5px;
     font-size: 0.85em;
     color: #888;
-    padding-top: 2px;
 }
 /* User message on the left */
 
@@ -196,7 +194,7 @@ h1 {
 .message.bot-message {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    /* justify-content: flex-end; */
     align-items: flex-start;
 }
 
@@ -222,11 +220,11 @@ h1 {
 .message.bot-message .message-time {
     /* text-align: right; */
     align-self: flex-end;
-    margin-left: auto;
-    margin-right: 0;
+    margin-left: 5px;
+    /* margin-right: 0; */
     font-size: 0.85em;
     color: #888;
-    padding-top: 2px;
+    padding-top: 5px;
 }
 /* Bot message on the right */
 
