@@ -17,6 +17,8 @@ public class ChatHub : Hub
     private readonly PromptExecutionSettings _executionSettings;
     private readonly IConfiguration _config;
 
+    private const string AI_ROLE = "AI";
+
     public ChatHub(Kernel kernel, ILogger<ChatHub> logger, IConfiguration config)
     {
         _kernel = kernel;
@@ -58,7 +60,7 @@ public class ChatHub : Hub
             await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message, "user");
 
             // Show typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, true);
+            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, true);
 
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
@@ -78,7 +80,7 @@ public class ChatHub : Hub
             );
 
             // Hide typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, false);
+            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
 
             // Send AI response
             await Clients.All.SendAsync("ReceiveMessage", "AI", result.Content ?? "No response generated.", "bot");
@@ -91,7 +93,7 @@ public class ChatHub : Hub
             _logger.LogError(ex, "❌ Error in SignalR SendMessage: {Message}", ex.Message);
             
             // Hide typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, false);
+            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
             
             // Send error message
             await Clients.Caller.SendAsync("ReceiveMessage", "System", 
@@ -129,6 +131,6 @@ public class ChatHub : Hub
     /// </summary>
     public async Task SendTyping(bool isTyping)
     {
-        await Clients.Others.SendAsync("UserTyping", Context.ConnectionId, isTyping);
+        await Clients.Others.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, isTyping);
     }
 }
