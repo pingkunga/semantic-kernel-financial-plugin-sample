@@ -23,8 +23,8 @@
                 <div class="message-content">
                     @if (message.IsUser)
                     {
-                        <div class="message-text">@message.Content</div>
                         <div class="user-avatar">👤</div>
+                        <div class="message-text">@message.Content</div>
                     }
                     else
                     {
@@ -42,14 +42,14 @@
         
         @if (isAITyping)
         {
-            <div class="message bot-message">
+           <div class="message bot-message">
                 <div class="message-content">
                     <div class="bot-avatar">🤖</div>
                     <div class="message-text">
                         <div class="typing-indicator">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
                         </div>
                     </div>
                 </div>
@@ -138,9 +138,10 @@
         InvokeAsync(ScrollToBottom);
     }
 
-    private void OnUserTyping(string connectionId, bool isTyping)
+    private void OnUserTyping(string connectionId, string role, bool isTyping)
     {
-        if (connectionId != ChatService.ConnectionId && connectionId == "AI")
+        //if (connectionId != ChatService.ConnectionId && connectionId == "AI")
+        if ((connectionId != ChatService.ConnectionId) || (role == "AI"))
         {
             isAITyping = isTyping;
             InvokeAsync(StateHasChanged);
