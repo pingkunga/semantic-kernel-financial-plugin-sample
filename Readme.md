@@ -16,6 +16,7 @@
 - [x] FinancialChatBotAPI + Open Telemetry
 - [ ] FinancialChatBotBlazerUI + Open Telemetry
 - [ ] FinancialChatBotAPI Semantic Kernel Chat History 
+- [x] Add Markdig to convert Markdown (From AI) to HTML
 
 # Sample Prompt For Test
 

@@ -1,5 +1,6 @@
 @page "/chat"
 @using FinancialChatBotBlazerUI.Services
+@using FinancialChatBotBlazerUI.Common
 @inject ChatService ChatService
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
@@ -242,7 +243,7 @@
 
     private string FormatMessage(string content)
     {
-        return content.Replace("\n", "<br>");
+        return content.ToHtml();
     }
 
     public async ValueTask DisposeAsync()
