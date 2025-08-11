@@ -18,7 +18,7 @@
 - [ ] FinancialChatBotAPI Semantic Kernel Chat History 
 - [x] Add Markdig to convert Markdown (From AI) to HTML
 - [x] remove hardcode endpoint for FinancialChatBotBlazerUI + FinancialChatBotAPI + add token (Now workaroud with Cloudflare Zerotrust + Service Auth)
-- [ ] FinancialChatBotAPI move azure / ollama to config
+- [x] FinancialChatBotAPI httpclient timeout move azure / ollama to config
 
 # Sample Prompt For Test
 
@@ -52,11 +52,11 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.6 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.6
+docker build -t pingkunga/financialchatbotapi:0.0.7 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.7
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.6 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.6
+docker build -t pingkunga/financialchatbotblazerui:0.0.7 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.7
 ```
