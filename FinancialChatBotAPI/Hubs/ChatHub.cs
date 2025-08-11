@@ -19,6 +19,10 @@ public class ChatHub : Hub
 
     private const string AI_ROLE = "AI";
 
+    // key ConnectionId
+    // value ChatHistory
+    private static readonly Dictionary<string, ChatHistory> _userHistories = new();
+
     public ChatHub(Kernel kernel, ILogger<ChatHub> logger, IConfiguration config)
     {
         _kernel = kernel;
@@ -65,12 +69,26 @@ public class ChatHub : Hub
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
             _logger.LogInformation("📡 Sending request to AI via SignalR...");
+
+            // Create or retrieve chat history for the user
             var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(
-                "You are a helpful financial assistant. "
-                + "Use the available financial functions to help users with stock prices, market analysis, and financial calculations. "
-                + "Always call the appropriate functions when users ask for specific financial data."
-            );
+            if (_userHistories.TryGetValue(Context.ConnectionId, out var existingHistory))
+            {
+                chatHistory = existingHistory;
+            }
+            else
+            {
+                // Add new chat history for the user
+                chatHistory.AddSystemMessage(
+                    "You are a helpful financial assistant. "
+                        + "Use the available financial functions to help users with stock prices, market analysis, and financial calculations. "
+                        + "Always call the appropriate functions when users ask for specific financial data."
+                );
+
+                _userHistories[Context.ConnectionId] = chatHistory;
+            }
+
+            // Add user message to the history
             chatHistory.AddUserMessage(message);
 
             var result = await chatCompletionService.GetChatMessageContentAsync(
@@ -79,25 +97,42 @@ public class ChatHub : Hub
                 kernel: _kernel
             );
 
+            // Add AI response to the history
+            chatHistory.AddAssistantMessage(result.Content ?? "No response generated.");
+
             // Hide typing indicator
             await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
 
             // Send AI response
-            await Clients.All.SendAsync("ReceiveMessage", "AI", result.Content ?? "No response generated.", "bot");
+            await Clients.All.SendAsync(
+                "ReceiveMessage",
+                "AI",
+                result.Content ?? "No response generated.",
+                "bot"
+            );
 
-            _logger.LogInformation("✅ SignalR AI response sent: {Response}", 
-                result.Content?.Substring(0, Math.Min(100, result.Content?.Length ?? 0)));
+            _logger.LogInformation(
+                "✅ SignalR AI response sent: {Response}",
+                result.Content?.Substring(0, Math.Min(100, result.Content?.Length ?? 0))
+            );
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Error in SignalR SendMessage: {Message}", ex.Message);
-            
+
             // Hide typing indicator
             await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
-            
+
             // Send error message
-            await Clients.Caller.SendAsync("ReceiveMessage", "System", 
-                $"❌ Error: {ex.Message}", "error");
+            await Clients.Caller.SendAsync(
+                "ReceiveMessage",
+                "System",
+                $"❌ Error: {ex.Message}",
+                "error"
+            );
+
+            //Clear user history on error
+            ClearUserChatHistory(_userHistories, Context.ConnectionId);
         }
     }
 
@@ -106,14 +141,21 @@ public class ChatHub : Hub
     /// </summary>
     public async Task JoinChat(string userName)
     {
-        _logger.LogInformation("👋 User {UserName} joined chat with connection {ConnectionId}", 
-            userName, Context.ConnectionId);
-        
+        _logger.LogInformation(
+            "👋 User {UserName} joined chat with connection {ConnectionId}",
+            userName,
+            Context.ConnectionId
+        );
+
         await Clients.All.SendAsync("UserJoined", userName, Context.ConnectionId);
-        
+
         // Send welcome message to the new user
-        await Clients.Caller.SendAsync("ReceiveMessage", "System", 
-            "👋 Welcome to Financial ChatBot! Ask me about stocks, market data, or financial calculations.", "system");
+        await Clients.Caller.SendAsync(
+            "ReceiveMessage",
+            "System",
+            "👋 Welcome to Financial ChatBot! Ask me about stocks, market data, or financial calculations.",
+            "system"
+        );
     }
 
     /// <summary>
@@ -123,7 +165,23 @@ public class ChatHub : Hub
     {
         _logger.LogInformation("👋 User disconnected: {ConnectionId}", Context.ConnectionId);
         await Clients.All.SendAsync("UserLeft", Context.ConnectionId);
+
+        // Clear chat history for the user
+        ClearUserChatHistory(_userHistories, Context.ConnectionId);
+
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private void ClearUserChatHistory(IDictionary<string, ChatHistory> pUserHistories, String pConnectionId)
+    {
+        if (pUserHistories.ContainsKey(pConnectionId))
+        {
+            _logger.LogInformation(
+                "🗑️ Clearing chat history for user {ConnectionId} on disconnect",
+                pConnectionId
+            );
+            pUserHistories.Remove(pConnectionId);
+        }
     }
 
     /// <summary>
