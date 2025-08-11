@@ -17,7 +17,8 @@
 - [ ] FinancialChatBotBlazerUI + Open Telemetry
 - [ ] FinancialChatBotAPI Semantic Kernel Chat History 
 - [x] Add Markdig to convert Markdown (From AI) to HTML
-- [ ] remove hardcode endpoint for FinancialChatBotBlazerUI + FinancialChatBotAPI + add token (Now workaroud with Cloudflare Zerotrust + Service Auth)
+- [x] remove hardcode endpoint for FinancialChatBotBlazerUI + FinancialChatBotAPI + add token (Now workaroud with Cloudflare Zerotrust + Service Auth)
+- [ ] FinancialChatBotAPI move azure / ollama to config
 
 # Sample Prompt For Test
 

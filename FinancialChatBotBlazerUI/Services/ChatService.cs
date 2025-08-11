@@ -10,10 +10,16 @@ public class ChatService : IAsyncDisposable
     private readonly string _hubUrl;
     private bool _disposed = false;
 
-    public ChatService()
+    public ChatService(IConfiguration configuration)
     {
-        _hubUrl = "https://aiappapi.pingkunga.dev/chathub"; // Your API URL
+        //_hubUrl = "https://aiappapi.pingkunga.dev/chathub"; // Your API URL
         //_hubUrl = "http://localhost:5181/chathub"; // Your API URL
+        _hubUrl =
+            configuration["FinancialChatAPI:APIUrl"]
+            ?? throw new ArgumentNullException(
+                nameof(configuration),
+                "APIUrl configuration is missing."
+            );
     }
 
     private void InitializeConnection()
