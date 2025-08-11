@@ -28,7 +28,10 @@ internal class Program
                     deploymentName: "gpt-35-turbo",
                     endpoint: config["AzureOpenAI:Endpoint"]!,
                     apiKey: config["AzureOpenAI:ApiKey"],
-                    httpClient: new() { Timeout = TimeSpan.FromMinutes(5) }
+                    httpClient: new() { Timeout = TimeSpan.FromMinutes(config["AzureOpenAI:HttpTimeout"] != null
+                        ? int.Parse(config["AzureOpenAI:HttpTimeout"])
+                        : 15)
+                    }
                 );
             }
             else if (config["AIBackEnd"] == "Ollama")
@@ -38,7 +41,9 @@ internal class Program
                     httpClient: new()
                     {
                         BaseAddress = new Uri(config["Ollama:Endpoint"]!),
-                        Timeout = TimeSpan.FromMinutes(5)
+                        Timeout = TimeSpan.FromMinutes(config["Ollama:HttpTimeout"] != null
+                            ? int.Parse(config["Ollama:HttpTimeout"])
+                            : 15)
                     }
                 );
             }
