@@ -1,15 +1,26 @@
 services:
   financialchatbotapi:
-    image: pingkunga/financialchatbotapi:0.0.3
+    image: pingkunga/financialchatbotapi:0.0.9
     container_name: financialchatbotapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - InvestmentAPI__BaseUrl=http://investmentapi:8080
     ports:
       - "17080:8080"
   financialchatbotblazerui:
-    image: pingkunga/financialchatbotblazerui:0.0.3
+    image: pingkunga/financialchatbotblazerui:0.0.9
     container_name: financialchatbotblazerui
+    #environment:
+      #ASPNETCORE_ENVIRONMENT: Development
+      #FinancialChatAPI__APIUrl: "https://aiappapi.pingkunga.dev/chathub"  # Env Not Work For blaze WASM execute at client
+    ports:
+      - "17081:8080"
+    volumes:
+      - /volume1/docker/financialchat/financialchatbotblazerui/appsettings.json:/usr/share/nginx/html/appsettings.json
+  investmentapi:
+    image: pingkunga/financialchatbotinvapi:0.0.9
+    container_name: financialchatbotinvapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "17081:8080"
+      - "17082:8080"
