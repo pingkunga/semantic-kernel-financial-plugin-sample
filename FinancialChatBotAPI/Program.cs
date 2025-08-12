@@ -1,4 +1,5 @@
 using ds.opentelemetry;
+using FinancialChatBotAPI.Hubs;
 using Microsoft.SemanticKernel;
 
 internal class Program
@@ -27,7 +28,10 @@ internal class Program
                     deploymentName: "gpt-35-turbo",
                     endpoint: config["AzureOpenAI:Endpoint"]!,
                     apiKey: config["AzureOpenAI:ApiKey"],
-                    httpClient: new() { Timeout = TimeSpan.FromMinutes(5) }
+                    httpClient: new() { Timeout = TimeSpan.FromMinutes(config["AzureOpenAI:HttpTimeout"] != null
+                        ? int.Parse(config["AzureOpenAI:HttpTimeout"])
+                        : 15)
+                    }
                 );
             }
             else if (config["AIBackEnd"] == "Ollama")
@@ -37,7 +41,9 @@ internal class Program
                     httpClient: new()
                     {
                         BaseAddress = new Uri(config["Ollama:Endpoint"]!),
-                        Timeout = TimeSpan.FromMinutes(5)
+                        Timeout = TimeSpan.FromMinutes(config["Ollama:HttpTimeout"] != null
+                            ? int.Parse(config["Ollama:HttpTimeout"])
+                            : 15)
                     }
                 );
             }
@@ -47,6 +53,38 @@ internal class Program
             kernelBuilder.Plugins.AddFromObject(financialPlugin);
 
             return kernelBuilder.Build();
+        });
+
+        // Add SignalR
+        builder.Services.AddSignalR();
+
+        // Add CORS for Blazor WebAssembly
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(
+                "AllowBlazorWasm",
+                policy =>
+                {
+                    if (builder.Environment.IsDevelopment())
+                    {
+                        // In development: Allow any origin
+                        policy
+                            .SetIsOriginAllowed(origin => true) // Allow any origin
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials(); // Important for SignalR
+                    }
+                    else
+                    {
+                        // In production: Restrict to specific origins
+                        policy
+                            .WithOrigins("https://yourdomain.com", "https://www.yourdomain.com")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    }
+                }
+            );
         });
 
         // Configure Swagger/OpenAPI
@@ -62,7 +100,19 @@ internal class Program
                     Description =
                         @"A Financial ChatBot API powered by Semantic Kernel that provides stock prices and market analysis using AI                    
                             
-                            Sample Prompts
+                             ## Features
+                            - REST API endpoints for traditional HTTP calls
+                            - SignalR Hub for real-time chat communication
+                            - Function calling with financial data
+            
+                            ## SignalR Hub
+                            - Connect to `/chathub` for real-time chat functionality.
+            
+                            ## AI Backends
+                            - OpenAI: Uses Azure OpenAI for chat completions.
+                            - Ollama: Uses Ollama for chat completions.
+                            
+                            ##Sample Prompts
                             - What's the current price of Apple stock?
                             - ราคาของหุ้น Apple ตอนนี้
                             -------------------------
@@ -111,8 +161,14 @@ internal class Program
             });
         }
 
+        // Use CORS
+        app.UseCors("AllowBlazorWasm");
+
         app.UseHttpsRedirection();
         app.MapControllers();
+
+        // Map SignalR Hub
+        app.MapHub<ChatHub>("/chathub");
 
         app.Run();
     }

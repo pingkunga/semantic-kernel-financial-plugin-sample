@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ds.opentelemetry", "ds.open
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChatBotAPI", "FinancialChatBotAPI\FinancialChatBotAPI.csproj", "{BD6D1D68-9D8D-4F03-91AF-F9265A95597F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChatBotBlazerUI", "FinancialChatBotBlazerUI\FinancialChatBotBlazerUI.csproj", "{40B986F0-8784-485E-956E-03CC711E0B13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{BD6D1D68-9D8D-4F03-91AF-F9265A95597F}.Release|x64.Build.0 = Release|Any CPU
 		{BD6D1D68-9D8D-4F03-91AF-F9265A95597F}.Release|x86.ActiveCfg = Release|Any CPU
 		{BD6D1D68-9D8D-4F03-91AF-F9265A95597F}.Release|x86.Build.0 = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|x64.Build.0 = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Debug|x86.Build.0 = Debug|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|x64.ActiveCfg = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|x64.Build.0 = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|x86.ActiveCfg = Release|Any CPU
+		{40B986F0-8784-485E-956E-03CC711E0B13}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

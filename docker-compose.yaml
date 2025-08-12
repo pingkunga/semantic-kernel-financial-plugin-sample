@@ -1,0 +1,15 @@
+services:
+  financialchatbotapi:
+    image: pingkunga/financialchatbotapi:0.0.3
+    container_name: financialchatbotapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "17080:8080"
+  financialchatbotblazerui:
+    image: pingkunga/financialchatbotblazerui:0.0.3
+    container_name: financialchatbotblazerui
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "17081:8080"
