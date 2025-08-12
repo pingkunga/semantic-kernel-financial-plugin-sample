@@ -365,4 +365,102 @@ public class FinancialPlugin
             return $"Error converting currency: {ex.Message}";
         }
     }
+
+    //Call REST API
+    //Automatically generated methods for other financial functions can be added here
+    /// <summary>
+    /// Calls the InvestmentAPI to calculate simple investment return.
+    /// </summary>
+    [KernelFunction]
+    [Description("Calculate simple investment return using the InvestmentAPI")]
+    public async Task<string> GetSimpleInvestmentReturnAsync(
+        [Description("Initial investment value")] double initialValue,
+        [Description("Final investment value")] double finalValue
+    )
+    {
+        try
+        {
+            _logger.LogInformation(
+                "🎯 GetSimpleInvestmentReturnAsync called with InitialValue: {InitialValue}, FinalValue: {FinalValue}",
+                initialValue,
+                finalValue
+            );
+
+            String baseUrl = GetInvestmentAPIBaseUrl();
+            var url =
+                $"{baseUrl}/api/CalcInvReturn/simple-return?initialValue={initialValue}&finalValue={finalValue}";
+            _logger.LogInformation("🎯 Calling InvestmentAPI at {Url}", url);
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling InvestmentAPI");
+            return $"Error calling InvestmentAPI: {ex.Message}";
+        }
+    }
+
+    //CAGR
+    /// <summary>
+    /// Calculate Compound Annual Growth Rate (CAGR) using the InvestmentAPI.
+    /// </summary>
+    /// <param name="initialValue">Initial investment value</param>
+    /// <param name="finalValue">Final investment value</param>
+    /// <param name="years">Number of years</param>
+    /// <returns>The CAGR calculation result as a string</returns>
+    [KernelFunction]
+    [Description("Calculate Compound Annual Growth Rate (CAGR) using the InvestmentAPI")]
+    public async Task<string> GetCAGRAsync(
+        [Description("Initial investment value")] double initialValue,
+        [Description("Final investment value")] double finalValue,
+        [Description("Number of years")] int years
+    )
+    {
+        try
+        {
+            _logger.LogInformation(
+                "🎯 GetCAGRAsync called with InitialValue: {InitialValue}, FinalValue: {FinalValue}, Years: {Years}",
+                initialValue,
+                finalValue,
+                years
+            );
+
+            String baseUrl = GetInvestmentAPIBaseUrl();
+            var url =
+                $"{baseUrl}/api/CalcInvReturn/cagr?initialValue={initialValue}&finalValue={finalValue}&years={years}";
+            _logger.LogInformation("🎯 Calling InvestmentAPI at {Url}", url);
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling InvestmentAPI");
+            return $"Error calling InvestmentAPI: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Gets the base URL for the InvestmentAPI from the configuration.
+    /// </summary>
+    /// <returns>The base URL string for the InvestmentAPI, or an error message if not configured.</returns>
+    public string GetInvestmentAPIBaseUrl()
+    {
+        var _configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        var config = _configuration.GetSection("InvestmentAPI");
+        if (config == null || string.IsNullOrEmpty(config["BaseUrl"]))
+        {
+            _logger.LogError("InvestmentAPI configuration is missing or invalid.");
+            return "InvestmentAPI configuration is missing or invalid.";
+        }
+        return config["BaseUrl"].TrimEnd('/');
+    }
 }

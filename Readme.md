@@ -10,7 +10,6 @@
 # Feature 
 
 - [x] Simple Chat Semantic Kernel Financial Plugin + Mock Data As API (FinancialChatBotAPI)
-- [ ] Split Service 
 - [x] Add Open Telemetry Common 
 - [x] Simple Chat UI (Blazer WASM) + Signal R Connect with Backend (FinancialChatBotBlazerUI)
 - [x] FinancialChatBotAPI + Open Telemetry
@@ -21,6 +20,9 @@
 - [x] Add Markdig to convert Markdown (From AI) to HTML
 - [x] remove hardcode endpoint for FinancialChatBotBlazerUI + FinancialChatBotAPI + add token (Now workaroud with Cloudflare Zerotrust + Service Auth)
 - [x] FinancialChatBotAPI httpclient timeout move azure / ollama to config
+- [ ] Split Service 
+  - [ ] InvestmentAPI
+- [ ] Add API Gateway (Ocelot / kong)
 
 # Sample Prompt For Test
 
@@ -54,11 +56,16 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.7 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.7
+docker build -t pingkunga/financialchatbotapi:0.0.9 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.9
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.7 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.7
+docker build -t pingkunga/financialchatbotblazerui:0.0.9 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.9
+```
+
+```
+docker build -t pingkunga/financialchatbotinvapi:0.0.9 -f InvestmentAPI/Dockerfile .
+docker push pingkunga/financialchatbotinvapi:0.0.9
 ```
