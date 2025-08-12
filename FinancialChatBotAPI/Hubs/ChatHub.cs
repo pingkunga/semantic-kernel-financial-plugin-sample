@@ -61,10 +61,10 @@ public class ChatHub : Hub
             _logger.LogInformation("🚀 SignalR Chat message received: {Message}", message);
 
             // Notify other clients that user sent a message
-            await Clients.All.SendAsync("ReceiveMessage", Context.ConnectionId, message, "user");
+            await Clients.Caller.SendAsync("ReceiveMessage", Context.ConnectionId, message, "user");
 
             // Show typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, true);
+            await Clients.Caller.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, true);
 
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
@@ -101,10 +101,10 @@ public class ChatHub : Hub
             chatHistory.AddAssistantMessage(result.Content ?? "No response generated.");
 
             // Hide typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
+            await Clients.Caller.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
 
             // Send AI response
-            await Clients.All.SendAsync(
+            await Clients.Caller.SendAsync(
                 "ReceiveMessage",
                 "AI",
                 result.Content ?? "No response generated.",
@@ -121,7 +121,7 @@ public class ChatHub : Hub
             _logger.LogError(ex, "❌ Error in SignalR SendMessage: {Message}", ex.Message);
 
             // Hide typing indicator
-            await Clients.All.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
+            await Clients.Caller.SendAsync("UserTyping", Context.ConnectionId, AI_ROLE, false);
 
             // Send error message
             await Clients.Caller.SendAsync(
