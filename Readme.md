@@ -14,8 +14,10 @@
 - [x] Add Open Telemetry Common 
 - [x] Simple Chat UI (Blazer WASM) + Signal R Connect with Backend (FinancialChatBotBlazerUI)
 - [x] FinancialChatBotAPI + Open Telemetry
-- [ ] FinancialChatBotBlazerUI + Open Telemetry
-- [ ] FinancialChatBotAPI Semantic Kernel Chat History 
+- [ ] [SKIP] FinancialChatBotBlazerUI + Open Telemetry not support 
+  - Required OpenTelemetry SDK JS + IJSRuntime or OpenTelemetry NET, but Some Data is Missing
+  - Required expose collector endpoint to client-slide
+- [x] FinancialChatBotAPI Semantic Kernel Chat History 
 - [x] Add Markdig to convert Markdown (From AI) to HTML
 - [x] remove hardcode endpoint for FinancialChatBotBlazerUI + FinancialChatBotAPI + add token (Now workaroud with Cloudflare Zerotrust + Service Auth)
 - [x] FinancialChatBotAPI httpclient timeout move azure / ollama to config
