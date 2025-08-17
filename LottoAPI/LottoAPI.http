@@ -1,0 +1,6 @@
+@LottoAPI_HostAddress = http://localhost:5182
+
+GET {{LottoAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
