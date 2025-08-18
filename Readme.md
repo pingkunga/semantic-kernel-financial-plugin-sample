@@ -3,9 +3,13 @@
 - Sample Chat API with Semantic Kernel Financial Plugin 
 - and Use LLM Model with Function Callinng such as LLAMA / Qwen to Trigger Regis Funcion with Mock Data
 
+# Architecture
+
+![Architecture ](./FinancialChatArchV1.svg "Architecture")
+
 # Sequence Diagram 
 
-![Sequence Diagram ](./FinancialChatV1.svg "Sequence Diagram ")
+![Sequence Diagram ](./FinancialChatV1.svg "Sequence Diagram")
 
 # Feature 
 
@@ -22,6 +26,7 @@
 - [x] FinancialChatBotAPI httpclient timeout move azure / ollama to config
 - [ ] Split Service 
   - [ ] InvestmentAPI
+  - [ ] LottoAPI
 - [ ] Add API Gateway (Ocelot / kong)
 
 # Sample Prompt For Test
@@ -56,16 +61,21 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.9 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.9
+docker build -t pingkunga/financialchatbotapi:0.0.10 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.10
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.9 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.9
+docker build -t pingkunga/financialchatbotblazerui:0.0.10 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.10
 ```
 
 ```
-docker build -t pingkunga/financialchatbotinvapi:0.0.9 -f InvestmentAPI/Dockerfile .
-docker push pingkunga/financialchatbotinvapi:0.0.9
+docker build -t pingkunga/financialchatbotinvapi:0.0.10 -f InvestmentAPI/Dockerfile .
+docker push pingkunga/financialchatbotinvapi:0.0.10
+```
+
+```
+docker build -t pingkunga/financialchatbotlottoapi:0.0.10 -f LottoAPI/Dockerfile .
+docker push pingkunga/financialchatbotlottoapi:0.0.10
 ```
