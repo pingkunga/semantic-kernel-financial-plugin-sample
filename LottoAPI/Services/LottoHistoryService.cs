@@ -151,7 +151,7 @@ public class LottoHistoryService
                             Count = r["Count"].AsInt32
                         }
                 )
-                .ToList();
+                .OrderBy(x => x.Count).ToList();
         }
         catch (Exception ex)
         {
