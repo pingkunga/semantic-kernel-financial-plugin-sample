@@ -5,6 +5,7 @@ public class LottoHistoryService
 {
     private readonly IMongoCollection<LottoHistory> _collection;
     private readonly ILogger<LottoHistoryService> _logger;
+
     public LottoHistoryService(IMongoDatabase database, ILogger<LottoHistoryService> logger)
     {
         _collection = database.GetCollection<LottoHistory>("lotto_history");
@@ -63,6 +64,7 @@ public class LottoHistoryService
             }
         }
         ])
+        
 
         // ตามงวด 1-15
         db["lotto_history"].aggregate([
@@ -94,6 +96,7 @@ public class LottoHistoryService
 
             bool IsFirstHalfOfMonth = day.HasValue && day.Value >= 1 && day.Value <= 15;
 
+            /*
             var pipeline = new List<BsonDocument>
             {
                 new BsonDocument(
@@ -104,7 +107,6 @@ public class LottoHistoryService
                     "$addFields",
                     new BsonDocument("month", new BsonDocument("$month", "$Date"))
                 ),
-
                 new BsonDocument(
                     "$addFields",
                     new BsonDocument("day", new BsonDocument("$dayOfMonth", "$Date"))
@@ -118,17 +120,24 @@ public class LottoHistoryService
                 if (IsFirstHalfOfMonth)
                 {
                     pipeline.Add(
-                        new BsonDocument("$match", new BsonDocument("day", new BsonDocument("$gte", 1).Add("$lte", 15)))
+                        new BsonDocument(
+                            "$match",
+                            new BsonDocument("day", new BsonDocument("$gte", 1).Add("$lte", 15))
+                        )
                     );
                 }
                 else
                 {
                     pipeline.Add(
-                        new BsonDocument("$match", new BsonDocument("day", new BsonDocument("$gt", 15)))
+                        new BsonDocument(
+                            "$match",
+                            new BsonDocument("day", new BsonDocument("$gt", 15))
+                        )
                     );
                 }
             }
-
+            */
+            var pipeline = GetLottoBaseQuery(month, day);
             pipeline.Add(
                 new BsonDocument(
                     "$group",
@@ -151,7 +160,8 @@ public class LottoHistoryService
                             Count = r["Count"].AsInt32
                         }
                 )
-                .OrderBy(x => x.Count).ToList();
+                .OrderBy(x => x.Count)
+                .ToList();
         }
         catch (Exception ex)
         {
@@ -161,5 +171,154 @@ public class LottoHistoryService
                 ex
             );
         }
+    }
+
+    public async Task<List<LottoPriceDigitHistory>> GetPrize3DigitHistoryAsync(int? month, int? day)
+    {
+        /*
+            db["lotto_history"].aggregate([
+            {
+                $addFields: {
+                month: { $month: "$Date" }
+                }
+            },
+            {
+                $match: {
+                month: 12
+                }
+            },
+            {
+                $facet: {
+                PrizeSub3Digits: [
+                    { $group: { _id: "$PrizeSub3Digits", count: { $sum: 1 } } },
+                    { $sort: { count: -1 } }
+                ],
+                PrizePre3Digit: [
+                    { $group: { _id: "$PrizePre3Digit", count: { $sum: 1 } } },
+                    { $sort: { count: -1 } }
+                ]
+                }
+            }
+            ])
+        */
+
+        /*
+        db["lotto_history"].aggregate([
+        {
+            $addFields: {
+            month: { $month: "$Date" },
+            day: { $dayOfMonth: "$Date" }
+            }
+        },
+        {
+            $match: {
+            month: 12,
+            day: { $gte: 1, $lte: 15 },
+            Prize2Digits: { $exists: true, $ne: null }
+            }
+        },
+        { $project: { PrizeSub3Digits: 1, PrizePre3Digit: 1, _id: 0 } }
+        ])
+        */
+
+        //Map to Model LottoHistory
+        try
+        {
+            var pipeline = GetLottoBaseQuery(month, day);
+            pipeline.Add(
+                // $project: เลือกเฉพาะฟิลด์ที่ต้องการ
+                new BsonDocument(
+                    "$project",
+                    new BsonDocument
+                    {
+                        { "PrizeSub3Digits", 1 },
+                        { "PrizePre3Digit", 1 },
+                        { "_id", 0 }
+                    }
+                )
+            );
+
+            IList<LottoHistory> results = await _collection
+                .Aggregate<LottoHistory>(pipeline)
+                .ToListAsync();
+
+            //Map to LottoPriceDigitHistory
+            IList<LottoPriceDigitHistory> sub3DigitHistory = results
+                .SelectMany(x => x.PrizeSub3Digits ?? Array.Empty<string>())
+                .GroupBy(x => x)
+                .Select(g => new LottoPriceDigitHistory { PrizeDigits = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            IList<LottoPriceDigitHistory> pre3DigitHistory = results
+                .SelectMany(x => x.PrizePre3Digit ?? Array.Empty<string>())
+                .GroupBy(x => x)
+                .Select(g => new LottoPriceDigitHistory { PrizeDigits = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            //Merge sub3DigitHistory and pre3DigitHistory and Count on same PrizeDigits
+            return sub3DigitHistory
+                .Concat(pre3DigitHistory)
+                .GroupBy(x => x.PrizeDigits)
+                .Select(
+                    g =>
+                        new LottoPriceDigitHistory
+                        {
+                            PrizeDigits = g.Key,
+                            Count = g.Sum(x => x.Count)
+                        }
+                )
+                .OrderByDescending(x => x.Count)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving prize 3 digit history.");
+            throw new ApplicationException(
+                "Error retrieving prize 3 digit history from database.",
+                ex
+            );
+        }
+    }
+
+    private List<BsonDocument> GetLottoBaseQuery(int? month, int? day)
+    {
+        var query = new List<BsonDocument>
+        {
+            new BsonDocument("$match", new BsonDocument("Date", new BsonDocument("$type", "date"))),
+            new BsonDocument(
+                "$addFields",
+                new BsonDocument("month", new BsonDocument("$month", "$Date"))
+            ),
+            new BsonDocument(
+                "$addFields",
+                new BsonDocument("day", new BsonDocument("$dayOfMonth", "$Date"))
+            )
+        };
+
+        bool IsFirstHalfOfMonth = day.HasValue && day.Value >= 1 && day.Value <= 15;
+
+        if (month.HasValue)
+        {
+            query.Add(new BsonDocument("$match", new BsonDocument("month", month.Value)));
+
+            if (IsFirstHalfOfMonth)
+            {
+                query.Add(
+                    new BsonDocument(
+                        "$match",
+                        new BsonDocument("day", new BsonDocument("$gte", 1).Add("$lte", 15))
+                    )
+                );
+            }
+            else
+            {
+                query.Add(
+                    new BsonDocument("$match", new BsonDocument("day", new BsonDocument("$gt", 15)))
+                );
+            }
+        }
+        return query;
     }
 }

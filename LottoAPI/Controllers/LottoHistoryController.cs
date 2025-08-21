@@ -24,7 +24,7 @@ public class LottoController : ControllerBase
             _logger.LogWarning("Invalid day value: {Day}. Must be between 1 and 31.", day);
             return BadRequest("Day must be between 1 and 31.");
         }
-    
+
         if (month.HasValue && (month < 1 || month > 12))
         {
             _logger.LogWarning("Invalid month value: {Month}. Must be between 1 and 12.", month);
@@ -48,6 +48,43 @@ public class LottoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving prize 2 digit history.");
+            return StatusCode(500, "Internal server error while retrieving data.");
+        }
+    }
+
+    [HttpGet("prize3digithistory")]
+    public async Task<IActionResult> GetPrize3DigitHistory([FromQuery] int? month, [FromQuery] int? day)
+    {
+        // Validate month and day parameters
+        if (day.HasValue && (day < 1 || day > 31))
+        {
+            _logger.LogWarning("Invalid day value: {Day}. Must be between 1 and 31.", day);
+            return BadRequest("Day must be between 1 and 31.");
+        }
+
+        if (month.HasValue && (month < 1 || month > 12))
+        {
+            _logger.LogWarning("Invalid month value: {Month}. Must be between 1 and 12.", month);
+            return BadRequest("Month must be between 1 and 12.");
+        }
+
+        try
+        {
+            _logger.LogInformation(
+                "Retrieving prize 3 digit history with month filter: {Month}",
+                month
+            );
+            var results = await _lottoHistoryService.GetPrize3DigitHistoryAsync(month, day);
+            return Ok(results);
+        }
+        catch (ApplicationException ex)
+        {
+            _logger.LogError(ex, "Application error while retrieving prize 3 digit history.");
+            return StatusCode(500, new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving prize 3 digit history.");
             return StatusCode(500, "Internal server error while retrieving data.");
         }
     }
