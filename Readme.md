@@ -28,6 +28,8 @@
   - [ ] InvestmentAPI
   - [ ] LottoAPI
 - [ ] Add API Gateway (Ocelot / kong)
+- [ ] Add GitHub Action (CI)
+- [ ] Add Portainer GitOps (CD)
 
 # Sample Prompt For Test
 
@@ -57,25 +59,29 @@
 
 ***
 
+- "Lotto 2 price digit of september / 1"
+- "ข้อมูลสลาก เลขท้าย 2 ตัว เดือน 10 วันที่ 1"
+
+***
 
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.10 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.10
+docker build -t pingkunga/financialchatbotapi:0.0.11 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.11
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.10 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.10
+docker build -t pingkunga/financialchatbotblazerui:0.0.11 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.11
 ```
 
 ```
-docker build -t pingkunga/financialchatbotinvapi:0.0.10 -f InvestmentAPI/Dockerfile .
-docker push pingkunga/financialchatbotinvapi:0.0.10
+docker build -t pingkunga/financialchatbotinvapi:0.0.11 -f InvestmentAPI/Dockerfile .
+docker push pingkunga/financialchatbotinvapi:0.0.11
 ```
 
 ```
-docker build -t pingkunga/financialchatbotlottoapi:0.0.10 -f LottoAPI/Dockerfile .
-docker push pingkunga/financialchatbotlottoapi:0.0.10
+docker build -t pingkunga/financialchatbotlottoapi:0.0.11 -f LottoAPI/Dockerfile .
+docker push pingkunga/financialchatbotlottoapi:0.0.11
 ```
