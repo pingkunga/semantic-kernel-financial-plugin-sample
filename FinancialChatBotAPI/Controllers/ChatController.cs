@@ -114,7 +114,7 @@ public class ChatController : ControllerBase
             var chatHistory = new ChatHistory();
             chatHistory.AddSystemMessage(
                 "You are a helpful financial assistant. "
-                    + "Use the available financial functions to help users with stock prices, market analysis, and financial calculations. "
+                    + "Use the available financial functions to help users with lotto, stock prices, market analysis, and financial calculations."
                     + "Always call the appropriate functions when users ask for specific financial data."
             );
             chatHistory.AddUserMessage(request.Query);
