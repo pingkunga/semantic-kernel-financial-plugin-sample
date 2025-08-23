@@ -466,7 +466,7 @@ public class FinancialPlugin
     }
     #endregion > InvestmentAPI Integration
 
-    
+
     #region > LottoAPI Integration
 
     /// <summary>
@@ -518,6 +518,54 @@ public class FinancialPlugin
     }
 
     /// <summary>
+    /// Gets the prize 3 digit history from the LottoAPI with optional month and day filters
+    /// </summary>
+    /// <param name="month">Optional month filter (1-12)</param>
+    /// <param name="day">Optional day filter (1-31)</param>
+    /// <returns>Prize 3 digit history as a JSON string</returns>
+    [KernelFunction]
+    [Description("Get prize 3 digit history from the LottoAPI with month and day filters")]
+    public async Task<string> GetPrize3DigitHistoryAsync(
+        [Description("month filter (1-12)")] int month,
+        [Description("day filter (1-31)")] int day
+    )
+    {
+        //http://localhost:5182/api/lotto/prize3digithistory?month=12&day=16
+        try
+        {
+            _logger.LogInformation(
+                "🎯 GetPrize3DigitHistoryAsync called with Month: {Month}, Day: {Day}",
+                month,
+                day
+            );
+
+            String baseUrl = GetLottoAPIBaseUrl();
+
+            var query = new List<string>();
+            query.Add($"month={month}");
+            query.Add($"day={day}");
+            // if (month.HasValue)
+            //  query.Add($"month={month.Value}");
+            //if (day.HasValue)
+            //  query.Add($"day={day.Value}");
+            var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
+
+            var url = $"{baseUrl}/api/lotto/prize3digithistory{queryString}";
+            _logger.LogInformation("🎯 Calling LottoAPI at {Url}", url);
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling LottoAPI");
+            return $"Error calling LottoAPI: {ex.Message}";
+        }
+    }
+
+    /// <summary>
     /// Gets the base URL for the LottoAPI from the configuration.
     /// </summary>
     /// <returns>The base URL string for the LottoAPI, or an error message if not configured.</returns>
@@ -539,5 +587,4 @@ public class FinancialPlugin
         return config["BaseUrl"].TrimEnd('/');
     }
     #endregion > LottoAPI Integration
-    
 }
