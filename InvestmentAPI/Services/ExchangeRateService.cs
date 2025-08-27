@@ -86,6 +86,9 @@ public class ExchangeRateService
         }
         #endregion validate
 
+        pBaseCurrency = pBaseCurrency.ToUpperInvariant();
+        pTargetCurrency = pTargetCurrency.ToUpperInvariant();
+
         ExchangeRateEntry? exchangeRateEntry = await FindSpecificRateFromDB(
             mtmDate,
             pBaseCurrency,
