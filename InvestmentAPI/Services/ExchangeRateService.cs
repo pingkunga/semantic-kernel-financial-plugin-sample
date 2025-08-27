@@ -120,6 +120,20 @@ public class ExchangeRateService
         bool pMatchDay
     )
     {
+        //Case Same Currency
+        if (pBaseCurrency == pTargetCurrency)
+        {
+            return new ExchangeRateEntry
+            {
+                DataSource = "OpenExchangeRates",
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                MTMDate = pMTMDate,
+                BaseCurrency = pBaseCurrency,
+                Currency = pTargetCurrency,
+                Rate = 1
+            };
+        }
+        
         ExchangeRateEntry? cachedRate = GetSpecificRateFromDBAsync(
             pMTMDate,
             pBaseCurrency,
