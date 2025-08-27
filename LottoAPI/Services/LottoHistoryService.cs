@@ -3,34 +3,34 @@ using MongoDB.Driver;
 
 public class LottoHistoryService
 {
-    private readonly IMongoCollection<LottoHistory> _collection;
+    private readonly IMongoCollection<LottoHistoryDocument> _collection;
     private readonly ILogger<LottoHistoryService> _logger;
 
     public LottoHistoryService(IMongoDatabase database, ILogger<LottoHistoryService> logger)
     {
-        _collection = database.GetCollection<LottoHistory>("lotto_history");
+        _collection = database.GetCollection<LottoHistoryDocument>("lotto_history");
         _logger = logger;
     }
 
-    public async Task<List<LottoHistory>> GetAllAsync()
+    public async Task<List<LottoHistoryDocument>> GetAllAsync()
     {
         _logger.LogInformation("Retrieving all lotto history records.");
-        return await _collection.Find(FilterDefinition<LottoHistory>.Empty).ToListAsync();
+        return await _collection.Find(FilterDefinition<LottoHistoryDocument>.Empty).ToListAsync();
     }
 
-    public async Task<LottoHistory> GetByIdAsync(ObjectId id)
+    public async Task<LottoHistoryDocument> GetByIdAsync(ObjectId id)
     {
         _logger.LogInformation($"Retrieving lotto history record with ID: {id}");
         return await _collection.Find(x => x.Id == id).FirstOrDefaultAsync();
     }
 
-    public async Task CreateAsync(LottoHistory history)
+    public async Task CreateAsync(LottoHistoryDocument history)
     {
         _logger.LogInformation("Creating a new lotto history record.");
         await _collection.InsertOneAsync(history);
     }
 
-    public async Task UpdateAsync(ObjectId id, LottoHistory history)
+    public async Task UpdateAsync(ObjectId id, LottoHistoryDocument history)
     {
         _logger.LogInformation($"Updating lotto history record with ID: {id}");
         await _collection.ReplaceOneAsync(x => x.Id == id, history);
@@ -238,8 +238,8 @@ public class LottoHistoryService
                 )
             );
 
-            IList<LottoHistory> results = await _collection
-                .Aggregate<LottoHistory>(pipeline)
+            IList<LottoHistoryDocument> results = await _collection
+                .Aggregate<LottoHistoryDocument>(pipeline)
                 .ToListAsync();
 
             //Map to LottoPriceDigitHistory

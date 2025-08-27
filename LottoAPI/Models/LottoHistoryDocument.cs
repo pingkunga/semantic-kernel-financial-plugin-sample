@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-public class LottoHistory
+public class LottoHistoryDocument
 {
     [BsonId]
     public ObjectId Id { get; set; }
