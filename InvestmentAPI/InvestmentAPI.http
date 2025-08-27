@@ -4,3 +4,26 @@ GET {{InvestmentAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-25&baseCurrency=USD&targetCurrency=EUR&isMatchDay=true
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-25&baseCurrency=EUR&targetCurrency=USD&isMatchDay=true
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-24&baseCurrency=USD&targetCurrency=EUR&isMatchDay=true 
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2020-08-24&baseCurrency=USD&targetCurrency=EUR&isMatchDay=true 
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-27&baseCurrency=USD&targetCurrency=THB&isMatchDay=true 
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-27&baseCurrency=THB&targetCurrency=USD&isMatchDay=true
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-27&baseCurrency=BTC&targetCurrency=THB&isMatchDay=true
+
+
+###
+GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-23&baseCurrency=BTC&targetCurrency=THB&isMatchDay=true

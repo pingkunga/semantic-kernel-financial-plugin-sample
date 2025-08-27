@@ -1,4 +1,7 @@
 using ds.opentelemetry;
+using InvestmentAPI.Data;
+using InvestmentAPI.Services;
+using Microsoft.EntityFrameworkCore;
 
 public class Program
 {
@@ -14,7 +17,26 @@ public class Program
 
         builder.AddObservability();
 
+        // Add PostgreSQL DbContext
+        builder.Services.AddDbContext<InvestmentDbContext>(
+            options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        );
+
+        // Register services
+        builder.Services.AddHttpClient<ExchangeRateService>();
+        builder.Services.AddScoped<ExchangeRateService>();
+
         var app = builder.Build();
+
+        // Automatically create or migrate the database
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<InvestmentDbContext>();
+            // Use EnsureCreated or Migrate
+            dbContext.Database.Migrate(); // Applies migrations
+            // dbContext.Database.EnsureCreated(); // Creates the database without migrations
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -23,47 +45,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
-        var summaries = new[]
-        {
-            "Freezing",
-            "Bracing",
-            "Chilly",
-            "Cool",
-            "Mild",
-            "Warm",
-            "Balmy",
-            "Hot",
-            "Sweltering",
-            "Scorching"
-        };
-
-        // app.MapGet(
-        //         "/weatherforecast",
-        //         () =>
-        //         {
-        //             var forecast = Enumerable
-        //                 .Range(1, 5)
-        //                 .Select(
-        //                     index =>
-        //                         new WeatherForecast(
-        //                             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-        //                             Random.Shared.Next(-20, 55),
-        //                             summaries[Random.Shared.Next(summaries.Length)]
-        //                         )
-        //                 )
-        //                 .ToArray();
-        //             return forecast;
-        //         }
-        //     )
-        //     .WithName("GetWeatherForecast");
+        app.UseAuthorization();
 
         app.MapControllers();
         app.Run();
     }
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
