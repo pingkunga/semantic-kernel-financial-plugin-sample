@@ -133,7 +133,7 @@ public class ExchangeRateService
                 Rate = 1
             };
         }
-        
+
         ExchangeRateEntry? cachedRate = GetSpecificRateFromDBAsync(
             pMTMDate,
             pBaseCurrency,
