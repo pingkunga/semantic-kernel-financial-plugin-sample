@@ -1,3 +1,4 @@
+using FinancialDomain.Shared.DTOs;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Text.Json;
@@ -275,10 +276,10 @@ public class FinancialPlugin
     /// <returns>Currency conversion result</returns>
     [KernelFunction]
     [Description("Convert currency amounts between different currencies")]
-    public string ConvertCurrency(
-        [Description("Amount to convert")] double amount,
-        [Description("Source currency code (e.g., USD, EUR, GBP)")] string fromCurrency,
-        [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency
+    public async Task<string> ConvertCurrency(
+        [Description("Amount to convert")] decimal amount,
+        [Description("Source currency code (e.g., USD, EUR, GBP, BTC)")] string fromCurrency,
+        [Description("Target currency code (e.g., USD, EUR, GBP, BTC)")] string toCurrency
     )
     {
         try
@@ -289,73 +290,39 @@ public class FinancialPlugin
                 fromCurrency,
                 toCurrency
             );
-            // Mock exchange rates - in real implementation, call currency API
-            var exchangeRates = new Dictionary<string, Dictionary<string, double>>
+
+            //Call API
+            //GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-23&baseCurrency=BTC&targetCurrency=THB&isMatchDay=true
+
+            String baseUrl = GetInvestmentAPIBaseUrl();
+            var url =
+                $"{baseUrl}/api/exchangerate/specificrate?date={DateTime.Now.ToString("yyyy-MM-dd")}&baseCurrency={fromCurrency}&targetCurrency={toCurrency}&isMatchDay=false";
+
+            _logger.LogInformation("🎯 Calling InvestmentAPI at {Url}", url);
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
             {
-                ["USD"] = new()
-                {
-                    ["EUR"] = 0.85,
-                    ["GBP"] = 0.73,
-                    ["JPY"] = 110.0,
-                    ["CAD"] = 1.25,
-                    ["AUD"] = 1.35
-                },
-                ["EUR"] = new()
-                {
-                    ["USD"] = 1.18,
-                    ["GBP"] = 0.86,
-                    ["JPY"] = 129.5,
-                    ["CAD"] = 1.47,
-                    ["AUD"] = 1.59
-                },
-                ["GBP"] = new()
-                {
-                    ["USD"] = 1.37,
-                    ["EUR"] = 1.16,
-                    ["JPY"] = 150.7,
-                    ["CAD"] = 1.71,
-                    ["AUD"] = 1.85
-                }
+                PropertyNameCaseInsensitive = true // Optional: Ignore case differences
             };
 
-            var fromUpper = fromCurrency.ToUpperInvariant();
-            var toUpper = toCurrency.ToUpperInvariant();
-
-            if (fromUpper == toUpper)
+            var rate = JsonSerializer.Deserialize<ExchangeRateDTO>(result, options);
+            if (rate == null)
             {
-                return JsonSerializer.Serialize(
-                    new
-                    {
-                        Amount = amount,
-                        FromCurrency = fromUpper,
-                        ToCurrency = toUpper,
-                        ConvertedAmount = amount,
-                        ExchangeRate = 1.0,
-                        Message = "Same currency conversion"
-                    }
-                );
+                return "Not Found";
             }
-
-            if (
-                !exchangeRates.ContainsKey(fromUpper)
-                || !exchangeRates[fromUpper].ContainsKey(toUpper)
-            )
-            {
-                return $"Exchange rate not available for {fromCurrency} to {toCurrency}. Available currencies: USD, EUR, GBP, JPY, CAD, AUD";
-            }
-
-            var rate = exchangeRates[fromUpper][toUpper];
-            var convertedAmount = Math.Round(amount * rate, 2);
 
             return JsonSerializer.Serialize(
                 new
                 {
                     Amount = amount,
-                    FromCurrency = fromUpper,
-                    ToCurrency = toUpper,
-                    ConvertedAmount = convertedAmount,
-                    ExchangeRate = rate,
-                    LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+                    FromCurrency = fromCurrency.ToUpperInvariant(),
+                    ToCurrency = toCurrency.ToUpperInvariant(),
+                    ConvertedAmount = Math.Round(amount * rate.Rate, 2),
+                    ExchangeRate = rate.Rate,
+                    LastUpdated = rate.MTMDate
                 },
                 new JsonSerializerOptions { WriteIndented = true }
             );

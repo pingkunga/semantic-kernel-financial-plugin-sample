@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ds.opentelemetry\ds.opentelemetry.csproj" />
+    <ProjectReference Include="..\FinancialDomain.Shared\FinancialDomain.Shared.csproj" />
   </ItemGroup>
 
 </Project>

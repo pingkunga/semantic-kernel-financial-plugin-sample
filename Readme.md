@@ -67,21 +67,28 @@
 # Build 
 
 ```
-docker build -t pingkunga/financialchatbotapi:0.0.11 -f FinancialChatBotAPI/Dockerfile .
-docker push pingkunga/financialchatbotapi:0.0.11
+docker build -t pingkunga/financialchatbotapi:0.0.12 -f FinancialChatBotAPI/Dockerfile .
+docker push pingkunga/financialchatbotapi:0.0.12
 ```
 
 ```
-docker build -t pingkunga/financialchatbotblazerui:0.0.11 -f FinancialChatBotBlazerUI/Dockerfile .
-docker push pingkunga/financialchatbotblazerui:0.0.11
+docker build -t pingkunga/financialchatbotblazerui:0.0.12 -f FinancialChatBotBlazerUI/Dockerfile .
+docker push pingkunga/financialchatbotblazerui:0.0.12
 ```
 
 ```
-docker build -t pingkunga/financialchatbotinvapi:0.0.11 -f InvestmentAPI/Dockerfile .
-docker push pingkunga/financialchatbotinvapi:0.0.11
+# Add initial migration
+dotnet ef migrations add InitialCreate --output-dir Data/Migrations
+
+# Apply the migration to the database
+dotnet ef database update
+dotnet ef migrations list
+
+docker build -t pingkunga/financialchatbotinvapi:0.0.12 -f InvestmentAPI/Dockerfile .
+docker push pingkunga/financialchatbotinvapi:0.0.12
 ```
 
 ```
-docker build -t pingkunga/financialchatbotlottoapi:0.0.11 -f LottoAPI/Dockerfile .
-docker push pingkunga/financialchatbotlottoapi:0.0.11
+docker build -t pingkunga/financialchatbotlottoapi:0.0.12 -f LottoAPI/Dockerfile .
+docker push pingkunga/financialchatbotlottoapi:0.0.12
 ```
