@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChatBotBlazerUI", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LottoAPI", "LottoAPI\LottoAPI.csproj", "{4C0241E0-5F4C-45EC-8EE3-20B203AF8957}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvestmentAPI", "InvestmentAPI\InvestmentAPI.csproj", "{ADBAF228-75E2-4ABC-9268-79E69CADFC18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{4C0241E0-5F4C-45EC-8EE3-20B203AF8957}.Release|x64.Build.0 = Release|Any CPU
 		{4C0241E0-5F4C-45EC-8EE3-20B203AF8957}.Release|x86.ActiveCfg = Release|Any CPU
 		{4C0241E0-5F4C-45EC-8EE3-20B203AF8957}.Release|x86.Build.0 = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|x64.Build.0 = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Debug|x86.Build.0 = Debug|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x64.ActiveCfg = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x64.Build.0 = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x86.ActiveCfg = Release|Any CPU
+		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
