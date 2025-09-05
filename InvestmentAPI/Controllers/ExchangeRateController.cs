@@ -38,32 +38,44 @@ public class ExchangeRateController : ControllerBase
         bool isMatchDay
     )
     {
-        ExchangeRateEntry? rate = await _exchangeRateService.GetSpecificRateAsync(
-            date,
-            baseCurrency,
-            targetCurrency,
-            isMatchDay
-        );
-        if (rate != null)
+        try
         {
-            //map exchange rate entry to DTO
-            ExchangeRateDTO rateDto =
-                new()
-                {
-                    Id = rate.Id,
-                    DataSource = rate.DataSource,
-                    Timestamp = rate.Timestamp,
-                    MTMDate = rate.MTMDate,
-                    BaseCurrency = rate.BaseCurrency,
-                    Currency = rate.Currency,
-                    Rate = rate.Rate,
-                    Amount = 1
-                };
-            return Ok(rateDto);
+            ExchangeRateEntry? rate = await _exchangeRateService.GetSpecificRateAsync(
+                date,
+                baseCurrency,
+                targetCurrency,
+                isMatchDay
+            );
+            if (rate != null)
+            {
+                //map exchange rate entry to DTO
+                ExchangeRateDTO rateDto =
+                    new()
+                    {
+                        Id = rate.Id,
+                        DataSource = rate.DataSource,
+                        Timestamp = rate.Timestamp,
+                        MTMDate = rate.MTMDate,
+                        BaseCurrency = rate.BaseCurrency,
+                        Currency = rate.Currency,
+                        Rate = rate.Rate,
+                        Amount = 1
+                    };
+                return Ok(rateDto);
+            }
+            else
+            {
+                return NotFound("Rate not found");
+            }
         }
-        else
+        catch (HttpRequestException ex)
         {
-            return NotFound("Rate not found");
+            // Optionally log ex.Message
+            return StatusCode(502, new { error = "External API error", message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
 }

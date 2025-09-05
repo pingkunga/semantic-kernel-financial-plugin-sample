@@ -41,7 +41,16 @@ public class ExchangeRateService
     public async Task<ExchangeRatesDocument?> GetHistoricalRatesAsync(string date)
     {
         var response = await _httpClient.GetAsync($"/historical/{date}.json?app_id={_appId}");
-        response.EnsureSuccessStatusCode();
+        // response.EnsureSuccessStatusCode();
+        // var ratesDocument = await response.Content.ReadFromJsonAsync<ExchangeRatesDocument>();
+        // return ratesDocument;
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            // Optionally log the errorContent here
+            throw new HttpRequestException($"API Error: {response.StatusCode} - {errorContent}");
+        }
+
         var ratesDocument = await response.Content.ReadFromJsonAsync<ExchangeRatesDocument>();
         return ratesDocument;
     }
