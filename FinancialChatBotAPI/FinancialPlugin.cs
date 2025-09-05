@@ -267,6 +267,113 @@ public class FinancialPlugin
         }
     }
 
+    #region > InvestmentAPI Integration
+    [KernelFunction]
+    [Description("Convert currency amounts on today's date using latest exchange rates")]
+    public async Task<string> ConvertCurrencyOnTodayDate(
+        [Description("Amount to convert")] decimal amount,
+        [Description("Source currency code (e.g., USD, EUR, GBP)")] string fromCurrency,
+        [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency
+    )
+    {
+
+        String result = await ConvertCurrencyOnSpecificDate(
+            amount,
+            fromCurrency,
+            toCurrency,
+            DateTime.UtcNow.ToString("yyyy-MM-dd")
+        );
+
+        if (result.Contains("Invalid date format") || result.Contains("Error"))
+        {
+            _logger.LogWarning(
+                "🎯 ConvertCurrencyOnSpecificDate failed, fallback to ConvertCurrency"
+            );
+            return await ConvertCurrency(amount, fromCurrency, toCurrency);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Convert currency amounts on a specific date
+    /// </summary>
+    /// param name="amount">Amount to convert</param>
+    /// <param name="fromCurrency">Source currency code (e.g., USD, EUR, GBP)</param>
+    /// <param name="toCurrency">Target currency code (e.g., USD, EUR, GBP)</param>
+    /// <param name="date">Date for the exchange rate (YYYY-MM-DD)</param>
+    /// <returns></returns>
+    [KernelFunction]
+    [Description("Convert currency amounts on a specific date using historical exchange rates")]
+    public async Task<string> ConvertCurrencyOnSpecificDate(
+        [Description("Amount to convert")] decimal amount,
+        [Description("Source currency code (e.g., USD, EUR, GBP)")] string fromCurrency,
+        [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency,
+        [Description("Date for the exchange rate (YYYY-MM-DD)")] string date
+    )
+    {
+        try
+        {
+            _logger.LogInformation(
+                "🎯 ConvertCurrencyOnSpecificDate called with Amount: {Amount}, From: {FromCurrency}, To: {ToCurrency}, Date: {Date}",
+                amount,
+                fromCurrency,
+                toCurrency,
+                date
+            );
+
+            //Validate date format
+            if (!DateTime.TryParse(date, out DateTime parsedDate))
+            {
+                return "Invalid date format. Please use YYYY-MM-DD.";
+            }
+
+            String baseUrl = GetInvestmentAPIBaseUrl();
+            var url =
+                $"{baseUrl}/api/exchangerate/specificrate?date={date}&baseCurrency={fromCurrency}&targetCurrency={toCurrency}&isMatchDay=true";
+
+            _logger.LogInformation("🎯 Calling InvestmentAPI at {Url}", url);
+            var response = await _httpClient.GetAsync(url);
+
+            // Handle non-success status codes
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return $"Error from InvestmentAPI: {response.StatusCode} - {errorContent}";
+            }
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true // Optional: Ignore case differences
+            };
+
+            var rate = JsonSerializer.Deserialize<ExchangeRateDTO>(result, options);
+            if (rate == null)
+            {
+                return "Not Found";
+            }
+
+            return JsonSerializer.Serialize(
+                new
+                {
+                    Amount = amount,
+                    FromCurrency = fromCurrency.ToUpperInvariant(),
+                    ToCurrency = toCurrency.ToUpperInvariant(),
+                    ConvertedAmount = Math.Round(amount * rate.Rate, 2),
+                    ExchangeRate = rate.Rate,
+                    RateDate = rate.MTMDate
+                },
+                new JsonSerializerOptions { WriteIndented = true }
+            );
+        }
+        catch (Exception ex)
+        {
+            return $"Error converting currency: {ex.Message}";
+        }
+    }
+
     /// <summary>
     /// Convert currency amounts between different currencies
     /// </summary>
@@ -333,7 +440,6 @@ public class FinancialPlugin
         }
     }
 
-    #region > InvestmentAPI Integration
     //Call REST API
     //Automatically generated methods for other financial functions can be added here
     /// <summary>
