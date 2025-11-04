@@ -267,6 +267,132 @@ public class FinancialPlugin
         }
     }
 
+    /// <summary>
+    /// Get market outlook for Thailand's SET Index, specified securities, and VIX volatility index
+    /// </summary>
+    [KernelFunction]
+    [Description(
+        "Get market outlook for Thailand's SET Index, specified securities, and VIX volatility index"
+    )]
+    public async Task<string> GetThaiMarketOutlookAsync(
+        [Description(
+            "Comma-separated list of Thai security symbols (e.g., SCB.BK,PTT.BK,KBANK.BK). If empty, defaults to common securities."
+        )]
+            string securitySymbols = ""
+    )
+    {
+        try
+        {
+            _logger.LogInformation(
+                "🎯 GetMarketOutlookAsync called with securities: {Securities}",
+                securitySymbols
+            );
+
+            // Fetch Thailand's SET Index
+            var setIndex = await YahooFinanceApi.Yahoo.GetHistoricalAsync(
+                "^SET.BK",
+                DateTime.Now.AddDays(-1),
+                DateTime.Now
+            );
+            //wait a moment to avoid rate limit
+            await Task.Delay(500);
+
+            // Fetch VIX (Volatility Index)
+            var vixIndex = await YahooFinanceApi.Yahoo.GetHistoricalAsync(
+                "^VIX",
+                DateTime.Now.AddDays(-1),
+                DateTime.Now
+            );
+            await Task.Delay(500);
+
+            // Parse security symbols or use defaults
+            var securities = string.IsNullOrWhiteSpace(securitySymbols)
+                ? new[] { "SCB.BK", "PTT.BK", "KBANK.BK" } // Default securities
+                : securitySymbols
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .ToArray();
+
+            var securityData = new List<object>();
+            foreach (var symbol in securities)
+            {
+                try
+                {
+                    var data = await YahooFinanceApi.Yahoo.GetHistoricalAsync(
+                        symbol,
+                        DateTime.Now.AddDays(-1),
+                        DateTime.Now
+                    );
+                    await Task.Delay(500);
+
+                    var last = data.Last();
+                    var first = data.First();
+                    securityData.Add(
+                        new
+                        {
+                            Symbol = symbol,
+                            CurrentValue = last.Close,
+                            Change = last.Close - first.Close,
+                            ChangePercent = Math.Round(
+                                ((last.Close - first.Close) / first.Close) * 100,
+                                2
+                            )
+                        }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        "Failed to fetch data for {Symbol}: {Message}",
+                        symbol,
+                        ex.Message
+                    );
+                    securityData.Add(new { Symbol = symbol, Error = "Data unavailable" });
+                }
+            }
+
+            var outlook = new
+            {
+                LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                SETIndex = new
+                {
+                    Name = "SET Index (Thailand)",
+                    Symbol = "^SET.BK",
+                    CurrentValue = setIndex.Last().Close,
+                    Change = setIndex.Last().Close - setIndex.First().Close,
+                    ChangePercent = Math.Round(
+                        ((setIndex.Last().Close - setIndex.First().Close) / setIndex.First().Close)
+                            * 100,
+                        2
+                    )
+                },
+                VIXIndex = new
+                {
+                    Name = "VIX (Volatility Index)",
+                    Symbol = "^VIX",
+                    CurrentValue = vixIndex.Last().Close,
+                    Change = vixIndex.Last().Close - vixIndex.First().Close,
+                    ChangePercent = Math.Round(
+                        ((vixIndex.Last().Close - vixIndex.First().Close) / vixIndex.First().Close)
+                            * 100,
+                        2
+                    )
+                },
+                Securities = securityData,
+                MarketOutlook = "Thailand's SET Index reflects local economic trends, with VIX indicating market volatility levels. Specified securities show sector-specific performance."
+            };
+
+            return JsonSerializer.Serialize(
+                outlook,
+                new JsonSerializerOptions { WriteIndented = true }
+            );
+        }
+        catch (Exception ex)
+        {
+            return $"Error retrieving Thailand market outlook: {ex.Message}";
+        }
+    }
+
     #region > InvestmentAPI Integration
     [KernelFunction]
     [Description("Convert currency amounts on today's date using latest exchange rates")]
@@ -276,7 +402,6 @@ public class FinancialPlugin
         [Description("Target currency code (e.g., USD, EUR, GBP)")] string toCurrency
     )
     {
-
         String result = await ConvertCurrencyOnSpecificDate(
             amount,
             fromCurrency,
