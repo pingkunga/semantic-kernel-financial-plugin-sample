@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using InvestmentAPI.Services;
+using ModelContextProtocol.Server;
 
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[McpServerToolType]
 public class CalcInvReturnController : ControllerBase
 {
     private readonly ILogger<CalcInvReturnController> _logger;
@@ -11,12 +13,17 @@ public class CalcInvReturnController : ControllerBase
 
     public CalcInvReturnController(
         ILogger<CalcInvReturnController> logger,
-        CalcInvReturnService calcService)
+        CalcInvReturnService calcService
+    )
     {
         _logger = logger;
         _calcService = calcService;
     }
 
+    [McpServerTool(
+        Name = "Calc Simple Return from initialValue to finalValue",
+        Title = "Calculate Simple Return"
+    )]
     [HttpGet("simple-return")]
     public IActionResult SimpleReturn(double initialValue, double finalValue)
     {
@@ -31,6 +38,10 @@ public class CalcInvReturnController : ControllerBase
         }
     }
 
+    [McpServerTool(
+        Name = "Calc CAGR from initialValue to finalValue over years",
+        Title = "Calculate Compound Annual Growth Rate (CAGR)"
+    )]
     [HttpGet("cagr")]
     public IActionResult CAGR(double initialValue, double finalValue, int years)
     {

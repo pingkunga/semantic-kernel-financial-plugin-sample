@@ -2,6 +2,7 @@ using ds.opentelemetry;
 using InvestmentAPI.Data;
 using InvestmentAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using ModelContextProtocol.Server;
 
 public class Program
 {
@@ -22,6 +23,12 @@ public class Program
             options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
         );
+
+        builder.Services
+            .AddMcpServer()
+            .WithPromptsFromAssembly()
+            .WithResourcesFromAssembly()
+            .WithToolsFromAssembly();
 
         // Register services
         builder.Services.AddHttpClient<ExchangeRateService>();
@@ -44,6 +51,7 @@ public class Program
         {
             app.MapOpenApi();
         }
+        app.MapMcp();
 
         app.UseHttpsRedirection();
         app.UseAuthorization();

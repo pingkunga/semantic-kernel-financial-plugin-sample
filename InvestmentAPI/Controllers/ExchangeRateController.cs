@@ -3,10 +3,12 @@ using InvestmentAPI.Models;
 using InvestmentAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using FinancialDomain.Shared.DTOs;
+using ModelContextProtocol.Server;
 
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[McpServerToolType]
 public class ExchangeRateController : ControllerBase
 {
     private readonly ExchangeRateService _exchangeRateService;
@@ -16,6 +18,10 @@ public class ExchangeRateController : ControllerBase
         _exchangeRateService = exchangeRateService;
     }
 
+    [McpServerTool(
+        Name = "Get Historical Exchange Rates for a given date",
+        Title = "Fetch Historical Exchange Rates"
+    )]
     [HttpGet("historical")]
     public async Task<IActionResult> GetHistoricalRates(string date)
     {
@@ -23,6 +29,10 @@ public class ExchangeRateController : ControllerBase
         return Ok(rates);
     }
 
+    [McpServerTool(
+        Name = "Get Latest Exchange Rates for a base currency",
+        Title = "Fetch Latest Exchange Rates"
+    )]
     [HttpGet("latest")]
     public async Task<IActionResult> GetLatestRates(string baseCurrency)
     {
@@ -30,6 +40,10 @@ public class ExchangeRateController : ControllerBase
         return Ok(rates);
     }
 
+    [McpServerTool(
+        Name = "Get Specific Exchange Rate for a date, base currency, and target currency",
+        Title = "Fetch Specific Exchange Rate"
+    )]
     [HttpGet("specificrate")]
     public async Task<IActionResult> GetSpecificRate(
         string date,
