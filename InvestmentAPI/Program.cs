@@ -26,6 +26,7 @@ public class Program
 
         builder.Services
             .AddMcpServer()
+            .WithHttpTransport()
             .WithPromptsFromAssembly()
             .WithResourcesFromAssembly()
             .WithToolsFromAssembly();
