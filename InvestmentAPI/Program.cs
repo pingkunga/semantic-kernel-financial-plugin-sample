@@ -26,6 +26,7 @@ public class Program
         // Register services
         builder.Services.AddHttpClient<ExchangeRateService>();
         builder.Services.AddScoped<ExchangeRateService>();
+        builder.Services.AddScoped<CalcInvReturnService>();
 
         var app = builder.Build();
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using InvestmentAPI.Services;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -6,41 +7,41 @@ using Microsoft.AspNetCore.Mvc;
 public class CalcInvReturnController : ControllerBase
 {
     private readonly ILogger<CalcInvReturnController> _logger;
+    private readonly CalcInvReturnService _calcService;
 
-    public CalcInvReturnController(ILogger<CalcInvReturnController> logger)
+    public CalcInvReturnController(
+        ILogger<CalcInvReturnController> logger,
+        CalcInvReturnService calcService)
     {
         _logger = logger;
+        _calcService = calcService;
     }
 
     [HttpGet("simple-return")]
     public IActionResult SimpleReturn(double initialValue, double finalValue)
     {
-        _logger.LogInformation(
-            "Calculating simple return for initial value: {InitialValue}, final value: {FinalValue}",
-            initialValue,
-            finalValue
-        );
-
-        if (initialValue <= 0)
-            return BadRequest("Initial value must be greater than zero.");
-
-        double result = ((finalValue - initialValue) / initialValue) * 100.0;
-        return Ok(new { SimpleReturn = result });
+        try
+        {
+            double result = _calcService.CalculateSimpleReturn(initialValue, finalValue);
+            return Ok(new { SimpleReturn = result });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("cagr")]
     public IActionResult CAGR(double initialValue, double finalValue, int years)
     {
-        _logger.LogInformation(
-            "Calculating compound annual growth rate (CAGR) for initial value: {InitialValue}, final value: {FinalValue}, years: {Years}",
-            initialValue,
-            finalValue,
-            years
-        );
-
-        if (initialValue <= 0 || years <= 0)
-            return BadRequest("Initial value and years must be greater than zero.");
-        double result = (Math.Pow(finalValue / initialValue, 1.0 / years) - 1) * 100.0;
-        return Ok(new { CAGR = result });
+        try
+        {
+            double result = _calcService.CalculateCAGR(initialValue, finalValue, years);
+            return Ok(new { CAGR = result });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
