@@ -295,4 +295,75 @@ public class ExchangeRateService
             };
         }
     }
+
+    public async Task<DateTime?> GetMaxDateForCurrencyPairAsync(
+        string baseCurrency,
+        string targetCurrency
+    )
+    {
+        if (string.IsNullOrWhiteSpace(baseCurrency))
+        {
+            throw new ArgumentException("Base currency must be provided", nameof(baseCurrency));
+        }
+
+        if (string.IsNullOrWhiteSpace(targetCurrency))
+        {
+            throw new ArgumentException("Target currency must be provided", nameof(targetCurrency));
+        }
+
+        baseCurrency = baseCurrency.ToUpperInvariant();
+        targetCurrency = targetCurrency.ToUpperInvariant();
+
+        // If same currency, return current date as max date
+        if (baseCurrency == targetCurrency)
+        {
+            return DateTime.UtcNow.Date;
+        }
+
+        var maxDate = await _dbContext.ExchangeRates
+            .Where(
+                r =>
+                    (r.BaseCurrency == baseCurrency && r.Currency == targetCurrency)
+                    || (r.BaseCurrency == targetCurrency && r.Currency == baseCurrency)
+            )
+            .MaxAsync(r => (DateTime?)r.MTMDate);
+
+        return maxDate;
+    }
+
+    public async Task<IEnumerable<CurrencyPairMaxDate>> GetAllCurrencyPairsWithMaxDateAsync()
+    {
+        var pairs = await _dbContext.ExchangeRates
+            .GroupBy(
+                r =>
+                    new
+                    {
+                        Base = r.BaseCurrency.CompareTo(r.Currency) < 0
+                            ? r.BaseCurrency
+                            : r.Currency,
+                        Target = r.BaseCurrency.CompareTo(r.Currency) < 0
+                            ? r.Currency
+                            : r.BaseCurrency
+                    }
+            )
+            .Select(
+                g =>
+                    new CurrencyPairMaxDate
+                    {
+                        BaseCurrency = g.Key.Base,
+                        TargetCurrency = g.Key.Target,
+                        MaxDate = g.Max(r => r.MTMDate)
+                    }
+            )
+            .ToListAsync();
+
+        return pairs;
+    }
+
+    public class CurrencyPairMaxDate
+    {
+        public required string BaseCurrency { get; set; }
+        public required string TargetCurrency { get; set; }
+        public required DateTime MaxDate { get; set; }
+    }
 }

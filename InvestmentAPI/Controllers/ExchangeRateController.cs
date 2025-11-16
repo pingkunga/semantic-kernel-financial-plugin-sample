@@ -92,4 +92,58 @@ public class ExchangeRateController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    [McpServerTool(
+        Name = "Get Maximum Date for Exchange Rate Data for a Currency Pair",
+        Title = "Fetch Max Date for Currency Pair"
+    )]
+    [HttpGet("max-date")]
+    public async Task<IActionResult> GetMaxDateForCurrencyPair(
+        [FromQuery] string baseCurrency,
+        [FromQuery] string targetCurrency
+    )
+    {
+        try
+        {
+            DateTime? maxDate = await _exchangeRateService.GetMaxDateForCurrencyPairAsync(
+                baseCurrency,
+                targetCurrency
+            );
+            if (maxDate.HasValue)
+            {
+                return Ok(new { maxDate = maxDate.Value.ToString("yyyy-MM-dd") });
+            }
+            else
+            {
+                return NotFound("No exchange rate data found for the specified currency pair");
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [McpServerTool(
+        Name = "Get All Currency Pairs with Their Maximum Dates",
+        Title = "Fetch All Currency Pairs Max Dates"
+    )]
+    [HttpGet("all-pairs-max-dates")]
+    public async Task<IActionResult> GetAllCurrencyPairsWithMaxDate()
+    {
+        try
+        {
+            var pairs = await _exchangeRateService.GetAllCurrencyPairsWithMaxDateAsync();
+            var result = pairs.Select(p => $"{p.BaseCurrency}-{p.TargetCurrency} {p.MaxDate:yyyy-MM-dd}");
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }
