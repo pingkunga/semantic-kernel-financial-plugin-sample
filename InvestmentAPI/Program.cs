@@ -6,8 +6,19 @@ using ModelContextProtocol.Server;
 
 public class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
+
+        // Check for --stdio flag
+        bool isStdioMode = args.Contains("--stdio");
+
+        if (isStdioMode)
+        {
+            // Stdio Mode: Run as console app for MCP Inspector
+            await RunStdioMode();
+            return;
+        }
+
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
@@ -59,5 +70,36 @@ public class Program
 
         app.MapControllers();
         app.Run();
+    }
+
+    private static async Task RunStdioMode()
+    {
+        var builder = Host.CreateEmptyApplicationBuilder(settings: null);
+        // Add PostgreSQL DbContext
+        builder.Services.AddDbContext<InvestmentDbContext>(
+            options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        );
+
+        builder.Services
+            .AddMcpServer()
+            .WithStdioServerTransport()
+            .WithPromptsFromAssembly()
+            .WithResourcesFromAssembly()
+            .WithToolsFromAssembly();
+
+        // Register services
+        builder.Services.AddHttpClient<ExchangeRateService>();
+        builder.Services.AddScoped<ExchangeRateService>();
+        builder.Services.AddScoped<CalcInvReturnService>();
+
+        await builder.Build().RunAsync();
+
+        //Apply migrations
+        using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<InvestmentDbContext>();
+            dbContext.Database.Migrate(); // Applies migrations
+        }
     }
 }
