@@ -32,6 +32,7 @@ public class FinancialPlugin
         [Description("The stock symbol to look up (e.g., AAPL, MSFT, GOOGL)")] string symbol
     )
     {
+        /*
         try
         {
             _logger.LogInformation("🎯 GetStockPriceAsync called with symbol: {Symbol}", symbol);
@@ -77,6 +78,56 @@ public class FinancialPlugin
         catch (Exception ex)
         {
             return $"Error retrieving stock price for {symbol}: {ex.Message}";
+        }
+        */
+        try
+        {
+            _logger.LogInformation("🎯 GetStockPriceAsync called with symbol: {Symbol}", symbol);
+
+            var upperSymbol = symbol.ToUpperInvariant();
+
+            // Fetch historical data for the last day
+            var historicalData = await YahooFinanceApi.Yahoo.GetHistoricalAsync(
+                upperSymbol,
+                DateTime.Now.AddDays(-1),
+                DateTime.Now
+            );
+
+            if (historicalData == null || !historicalData.Any())
+            {
+                return $"No data available for symbol '{symbol}'. Please check the symbol or try again later.";
+            }
+
+            // Use the latest data point
+            var latest = historicalData.Last();
+            var previous = historicalData.Count > 1 ? historicalData[historicalData.Count - 2] : latest; // Previous close if available
+
+            var price = latest.Close;
+            var change = price - previous.Close;
+            var changePercent = Math.Round((change / previous.Close) * 100, 2);
+
+            return JsonSerializer.Serialize(
+                new
+                {
+                    Symbol = upperSymbol,
+                    Price = price,
+                    Change = change,
+                    ChangePercent = changePercent,
+                    Currency = "USD",
+                    DataDate = latest.DateTime.ToString("yyyy-MM-dd"), 
+                    LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                    Note = $"Data is based on the latest available close price {latest.DateTime.ToString("yyyy-MM-dd")} from Yahoo Finance."
+                },
+                new JsonSerializerOptions { WriteIndented = true }
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving stock price for {Symbol}", symbol);
+            return $"Error retrieving stock price for {symbol}: {ex.Message}";
+
+            // Fallback to mock data
+            //return await GetMockStockPriceAsync(symbol);
         }
     }
 
