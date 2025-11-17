@@ -138,8 +138,156 @@ public class ExchangeRateController : ControllerBase
         try
         {
             var pairs = await _exchangeRateService.GetAllCurrencyPairsWithMaxDateAsync();
-            var result = pairs.Select(p => $"{p.BaseCurrency}-{p.TargetCurrency} {p.MaxDate:yyyy-MM-dd}");
+            var result = pairs.Select(
+                p => $"{p.BaseCurrency}-{p.TargetCurrency} {p.MaxDate:yyyy-MM-dd}"
+            );
             return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Add a new exchange rate entry
+    /// </summary>
+    [McpServerTool(Name = "Add New Exchange Rate Entry", Title = "Create Exchange Rate")]
+    [HttpPost("add")]
+    public async Task<IActionResult> AddExchangeRate([FromBody] ExchangeRateDTO rateDto)
+    {
+        try
+        {
+            if (rateDto == null)
+            {
+                return BadRequest("Exchange rate data is required");
+            }
+
+            // Validate required fields
+            if (
+                string.IsNullOrWhiteSpace(rateDto.BaseCurrency)
+                || string.IsNullOrWhiteSpace(rateDto.Currency)
+            )
+            {
+                return BadRequest("BaseCurrency and Currency are required");
+            }
+
+            // Map DTO to entity
+            var rateEntry = new ExchangeRateEntry
+            {
+                DataSource = rateDto.DataSource ?? "Manual",
+                Timestamp =
+                    rateDto.Timestamp != 0
+                        ? rateDto.Timestamp
+                        : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                MTMDate = rateDto.MTMDate,
+                BaseCurrency = rateDto.BaseCurrency.ToUpperInvariant(),
+                Currency = rateDto.Currency.ToUpperInvariant(),
+                Rate = rateDto.Rate
+            };
+
+            // Add to database via service
+            var created = await _exchangeRateService.AddExchangeRateAsync(rateEntry);
+
+            // Return created entry with ID
+            var createdDto = new ExchangeRateDTO
+            {
+                Id = created.Id,
+                DataSource = created.DataSource,
+                Timestamp = created.Timestamp,
+                MTMDate = created.MTMDate,
+                BaseCurrency = created.BaseCurrency,
+                Currency = created.Currency,
+                Rate = created.Rate,
+                Amount = 1
+            };
+
+            return CreatedAtAction(
+                nameof(GetSpecificRate),
+                new
+                {
+                    date = created.MTMDate.ToString("yyyy-MM-dd"),
+                    baseCurrency = created.BaseCurrency,
+                    targetCurrency = created.Currency,
+                    isMatchDay = true
+                },
+                createdDto
+            );
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update an existing exchange rate entry
+    /// </summary>
+    [McpServerTool(Name = "Update Exchange Rate Entry", Title = "Edit Exchange Rate")]
+    [HttpPut("update/{id:guid}")]
+    public async Task<IActionResult> UpdateExchangeRate(Guid id, [FromBody] ExchangeRateDTO rateDto)
+    {
+        try
+        {
+            if (rateDto == null)
+            {
+                return BadRequest("Exchange rate data is required");
+            }
+
+            var existing = await _exchangeRateService.GetExchangeRateByIdAsync(id);
+            if (existing == null)
+            {
+                return NotFound($"Exchange rate with ID {id} not found");
+            }
+
+            // Update the existing entry with new values
+            existing.DataSource = rateDto.DataSource;
+            existing.Timestamp = rateDto.Timestamp;
+            existing.MTMDate = rateDto.MTMDate;
+            existing.BaseCurrency = rateDto.BaseCurrency;
+            existing.Currency = rateDto.Currency;
+            existing.Rate = rateDto.Rate;
+
+            await _exchangeRateService.UpdateExchangeRateAsync(existing);
+
+            // Return updated entry
+            var updatedDto = new ExchangeRateDTO
+            {
+                Id = existing.Id,
+                DataSource = existing.DataSource,
+                Timestamp = existing.Timestamp,
+                MTMDate = existing.MTMDate,
+                BaseCurrency = existing.BaseCurrency,
+                Currency = existing.Currency,
+                Rate = existing.Rate,
+                Amount = 1
+            };
+
+            return Ok(updatedDto);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Delete an exchange rate entry by ID
+    /// </summary>
+    [McpServerTool(Name = "Delete Exchange Rate Entry", Title = "Delete Exchange Rate")]
+    [HttpDelete("delete/{id:guid}")]
+    public async Task<IActionResult> DeleteExchangeRate(Guid id)
+    {
+        try
+        {
+            var existing = await _exchangeRateService.GetExchangeRateByIdAsync(id);
+            if (existing == null)
+            {
+                return NotFound($"Exchange rate with ID {id} not found");
+            }
+
+            await _exchangeRateService.DeleteExchangeRateAsync(id);
+            return NoContent();
         }
         catch (Exception ex)
         {

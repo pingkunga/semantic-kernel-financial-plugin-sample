@@ -366,4 +366,98 @@ public class ExchangeRateService
         public required string TargetCurrency { get; set; }
         public required DateTime MaxDate { get; set; }
     }
+
+    public async Task<ExchangeRateEntry> AddExchangeRateAsync(ExchangeRateEntry entry)
+    {
+        if (entry == null)
+        {
+            throw new ArgumentNullException(nameof(entry));
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.BaseCurrency))
+        {
+            throw new ArgumentException("BaseCurrency is required", nameof(entry.BaseCurrency));
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.Currency))
+        {
+            throw new ArgumentException("Currency is required", nameof(entry.Currency));
+        }
+
+        if (entry.Rate <= 0)
+        {
+            throw new ArgumentException("Rate must be greater than 0", nameof(entry.Rate));
+        }
+
+        if (entry.MTMDate == default)
+        {
+            throw new ArgumentException("MTMDate is required", nameof(entry.MTMDate));
+        }
+
+        entry.BaseCurrency = entry.BaseCurrency.ToUpperInvariant();
+        entry.Currency = entry.Currency.ToUpperInvariant();
+
+        _dbContext.ExchangeRates.Add(entry);
+        await _dbContext.SaveChangesAsync();
+        return entry;
+    }
+
+    public async Task<ExchangeRateEntry?> GetExchangeRateByIdAsync(Guid id)
+    {
+        return await _dbContext.ExchangeRates.FindAsync(id);
+    }
+
+    public async Task<ExchangeRateEntry> UpdateExchangeRateAsync(ExchangeRateEntry entry)
+    {
+        if (entry == null)
+        {
+            throw new ArgumentNullException(nameof(entry));
+        }
+
+        if (entry.Id == Guid.Empty)
+        {
+            throw new ArgumentException("Id is required", nameof(entry.Id));
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.BaseCurrency))
+        {
+            throw new ArgumentException("BaseCurrency is required", nameof(entry.BaseCurrency));
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.Currency))
+        {
+            throw new ArgumentException("Currency is required", nameof(entry.Currency));
+        }
+
+        if (entry.Rate <= 0)
+        {
+            throw new ArgumentException("Rate must be greater than 0", nameof(entry.Rate));
+        }
+
+        if (entry.MTMDate == default)
+        {
+            throw new ArgumentException("MTMDate is required", nameof(entry.MTMDate));
+        }
+
+        entry.BaseCurrency = entry.BaseCurrency.ToUpperInvariant();
+        entry.Currency = entry.Currency.ToUpperInvariant();
+
+        _dbContext.ExchangeRates.Update(entry);
+        await _dbContext.SaveChangesAsync();
+        return entry;
+    }
+
+    public async Task<bool> DeleteExchangeRateAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("Id cannot be empty", nameof(id));
+        }
+
+        var entry = await _dbContext.ExchangeRates.FindAsync(id);
+        if (entry == null) return false;
+        _dbContext.ExchangeRates.Remove(entry);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
 }

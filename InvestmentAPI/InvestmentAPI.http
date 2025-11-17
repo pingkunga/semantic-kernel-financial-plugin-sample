@@ -30,3 +30,32 @@ GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-08-23&
 
 ###
 GET {{InvestmentAPI_HostAddress}}/api/exchangerate/specificrate?date=2025-09-06&baseCurrency=BTC&targetCurrency=THB&isMatchDay=true
+
+###
+POST {{InvestmentAPI_HostAddress}}/api/exchangerate/add
+Content-Type: application/json
+
+{
+  "dataSource": "Manual",
+  "baseCurrency": "USD",
+  "currency": "EUR",
+  "mtmdate": "2025-08-30",
+  "rate": 0.85,
+  "timestamp": 1693526400
+}
+
+###
+PUT {{InvestmentAPI_HostAddress}}/api/exchangerate/update/d3f1c95d-27d8-41d4-b5dc-dff26dda39c7
+Content-Type: application/json
+
+{
+  "dataSource": "Manual",
+  "baseCurrency": "USD",
+  "currency": "EUR",
+  "mtmdate": "2025-08-30",
+  "rate": 0.87,
+  "timestamp": 1693526400
+}
+
+###
+DELETE {{InvestmentAPI_HostAddress}}/api/exchangerate/delete/d3f1c95d-27d8-41d4-b5dc-dff26dda39c7
