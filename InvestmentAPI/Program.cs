@@ -8,7 +8,6 @@ public class Program
 {
     private static async Task Main(string[] args)
     {
-
         // Check for --stdio flag
         bool isStdioMode = args.Contains("--stdio");
 
@@ -74,7 +73,8 @@ public class Program
 
     private static async Task RunStdioMode()
     {
-        var builder = Host.CreateEmptyApplicationBuilder(settings: null);
+        var builder = Host.CreateApplicationBuilder(); // Use CreateApplicationBuilder for config
+        builder.Configuration.AddJsonFile("appsettings.json", optional: true); // Load config
         // Add PostgreSQL DbContext
         builder.Services.AddDbContext<InvestmentDbContext>(
             options =>
