@@ -24,10 +24,7 @@ public class CalcInvReturnController : ControllerBase
         _calcService = calcService;
     }
 
-    [McpServerTool(
-        Name = "Calc Simple Return from initialValue to finalValue",
-        Title = "Calculate Simple Return"
-    )]
+    [McpServerTool(Name = "calc_simple_return", Title = "Calculate Simple Return")]
     [HttpGet("simple-return")]
     public IActionResult SimpleReturn(double initialValue, double finalValue)
     {
@@ -42,10 +39,7 @@ public class CalcInvReturnController : ControllerBase
         }
     }
 
-    [McpServerTool(
-        Name = "Calc CAGR from initialValue to finalValue over years",
-        Title = "Calculate Compound Annual Growth Rate (CAGR)"
-    )]
+    [McpServerTool(Name = "calc_cagr", Title = "Calculate Compound Annual Growth Rate (CAGR)")]
     [HttpGet("cagr")]
     public IActionResult CAGR(double initialValue, double finalValue, int years)
     {
@@ -62,7 +56,7 @@ public class CalcInvReturnController : ControllerBase
 
     [McpServerResource(
         UriTemplate = "api://calcinvreturn/formulas/{type}",
-        Name = "Investment Calculation Formula",
+        Name = "investment_calculation_formula",
         MimeType = "text/plain"
     )]
     [Description("Returns the formula for simple return or CAGR as plain text")]
@@ -85,7 +79,7 @@ public class CalcInvReturnController : ControllerBase
 
     [McpServerResource(
         UriTemplate = "api://calcinvreturn/examples/{type}",
-        Name = "Investment Calculation Example",
+        Name = "investment_calculation_example",
         MimeType = "application/json"
     )]
     [Description("Returns an example calculation for simple return or CAGR as JSON")]

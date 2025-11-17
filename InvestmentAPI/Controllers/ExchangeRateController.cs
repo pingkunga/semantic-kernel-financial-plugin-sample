@@ -19,7 +19,7 @@ public class ExchangeRateController : ControllerBase
     }
 
     [McpServerTool(
-        Name = "Get Historical Exchange Rates for a given date",
+        Name = "get_historical_exchange_rates",
         Title = "Fetch Historical Exchange Rates"
     )]
     [HttpGet("historical")]
@@ -30,7 +30,7 @@ public class ExchangeRateController : ControllerBase
     }
 
     [McpServerTool(
-        Name = "Get Latest Exchange Rates for a base currency",
+        Name = "get_latest_exchange_rates",
         Title = "Fetch Latest Exchange Rates"
     )]
     [HttpGet("latest")]
@@ -41,7 +41,7 @@ public class ExchangeRateController : ControllerBase
     }
 
     [McpServerTool(
-        Name = "Get Specific Exchange Rate for a date, base currency, and target currency",
+        Name = "get_specific_exchange_rate",
         Title = "Fetch Specific Exchange Rate"
     )]
     [HttpGet("specificrate")]
@@ -94,7 +94,7 @@ public class ExchangeRateController : ControllerBase
     }
 
     [McpServerTool(
-        Name = "Get Maximum Date for Exchange Rate Data for a Currency Pair",
+        Name = "get_max_date_for_currency_pair",
         Title = "Fetch Max Date for Currency Pair"
     )]
     [HttpGet("max-date")]
@@ -129,7 +129,7 @@ public class ExchangeRateController : ControllerBase
     }
 
     [McpServerTool(
-        Name = "Get All Currency Pairs with Their Maximum Dates",
+        Name = "get_all_currency_pairs_max_dates",
         Title = "Fetch All Currency Pairs Max Dates"
     )]
     [HttpGet("all-pairs-max-dates")]
@@ -152,7 +152,7 @@ public class ExchangeRateController : ControllerBase
     /// <summary>
     /// Add a new exchange rate entry
     /// </summary>
-    [McpServerTool(Name = "Add New Exchange Rate Entry", Title = "Create Exchange Rate")]
+    [McpServerTool(Name = "add_new_exchange_rate_entry", Title = "Create Exchange Rate")]
     [HttpPost("add")]
     public async Task<IActionResult> AddExchangeRate([FromBody] ExchangeRateDTO rateDto)
     {
@@ -223,7 +223,7 @@ public class ExchangeRateController : ControllerBase
     /// <summary>
     /// Update an existing exchange rate entry
     /// </summary>
-    [McpServerTool(Name = "Update Exchange Rate Entry", Title = "Edit Exchange Rate")]
+    [McpServerTool(Name = "update_exchange_rate_entry", Title = "Edit Exchange Rate")]
     [HttpPut("update/{id:guid}")]
     public async Task<IActionResult> UpdateExchangeRate(Guid id, [FromBody] ExchangeRateDTO rateDto)
     {
@@ -274,7 +274,7 @@ public class ExchangeRateController : ControllerBase
     /// <summary>
     /// Delete an exchange rate entry by ID
     /// </summary>
-    [McpServerTool(Name = "Delete Exchange Rate Entry", Title = "Delete Exchange Rate")]
+    [McpServerTool(Name = "delete_exchange_rate_entry", Title = "Delete Exchange Rate")]
     [HttpDelete("delete/{id:guid}")]
     public async Task<IActionResult> DeleteExchangeRate(Guid id)
     {
