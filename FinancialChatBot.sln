@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LottoAPI", "LottoAPI\LottoA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvestmentAPI", "InvestmentAPI\InvestmentAPI.csproj", "{ADBAF228-75E2-4ABC-9268-79E69CADFC18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChatAGAPI", "FinancialChatAGAPI\FinancialChatAGAPI.csproj", "{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x64.Build.0 = Release|Any CPU
 		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x86.ActiveCfg = Release|Any CPU
 		{ADBAF228-75E2-4ABC-9268-79E69CADFC18}.Release|x86.Build.0 = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|x64.Build.0 = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Debug|x86.Build.0 = Debug|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|x64.ActiveCfg = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|x64.Build.0 = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|x86.ActiveCfg = Release|Any CPU
+		{8EF2958B-055A-4DA5-9C48-6C3C7CE1E4A5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

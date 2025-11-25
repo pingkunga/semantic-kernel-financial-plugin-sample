@@ -1,6 +1,8 @@
 using GenerativeAI.Microsoft;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Hosting;
+using Microsoft.Agents.AI.DevUI;
+using Microsoft.Agents.AI.Hosting.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
@@ -14,6 +16,7 @@ using Azure.Identity;
 
 public class Program
 {
+    
     private static void Main(string[] args)
     {
         // Get API key from environment variables (recommended).
@@ -28,13 +31,18 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        // Add services to the container.
         builder.Services.AddOpenApi();
 
-        builder.AddAIAgent("LicenseMaster", (sp, key) =>
+        builder.Services.AddSingleton<IChatClient>(
+            provider => CreateChatClient(aiEngineType, endpoint, modelName, apiKey)
+        );
+
+        builder.AddAIAgent("Financial Assistant", (sp, key) =>
         {
             IClientTransport clientTransport = CreateClientTransport("http", new string[]
             {
-                mcpServer ?? "http://localhost:5212"
+                mcpServer ?? "http://localhost:5205"
             });
 
             var mcpClient = McpClient.CreateAsync(clientTransport!).GetAwaiter().GetResult();
@@ -63,11 +71,22 @@ public class Program
             );
         });
 
+        // Register services for OpenAI responses and conversations (also required for DevUI)
+        builder.AddOpenAIResponses();
+        builder.AddOpenAIConversations();
+        
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+
+
+            //Needed for DevUI to function 
+            app.MapOpenAIResponses();
+            app.MapOpenAIConversations();
+            app.MapDevUI();
         }
 
         app.MapGet("/", () => "Hello World!");
