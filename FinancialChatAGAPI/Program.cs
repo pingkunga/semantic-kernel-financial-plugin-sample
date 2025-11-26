@@ -38,6 +38,10 @@ public class Program
             provider => CreateChatClient(aiEngineType, endpoint, modelName, apiKey)
         );
 
+        // Register services for OpenAI responses and conversations (also required for DevUI)
+        builder.Services.AddOpenAIResponses();
+        builder.Services.AddOpenAIConversations();
+
         builder.AddAIAgent("Financial Assistant", (sp, key) =>
         {
             IClientTransport clientTransport = CreateClientTransport("http", new string[]
@@ -71,9 +75,8 @@ public class Program
             );
         });
 
-        // Register services for OpenAI responses and conversations (also required for DevUI)
-        builder.AddOpenAIResponses();
-        builder.AddOpenAIConversations();
+        // Add logging
+        builder.Logging.AddConsole();
         
 
         var app = builder.Build();
