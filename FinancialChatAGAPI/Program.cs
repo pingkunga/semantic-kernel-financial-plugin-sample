@@ -13,6 +13,8 @@ using OpenAI.Chat;
 using System.ClientModel;
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using Microsoft.Agents.AI.Workflows;
+using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 
 public class Program
 {
@@ -33,6 +35,8 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddOpenApi();
+         // Add logging
+        builder.Logging.AddConsole();
 
         builder.Services.AddSingleton<IChatClient>(
             provider => CreateChatClient(aiEngineType, endpoint, modelName, apiKey)
@@ -42,7 +46,7 @@ public class Program
         builder.Services.AddOpenAIResponses();
         builder.Services.AddOpenAIConversations();
 
-        builder.AddAIAgent("Financial Assistant", (sp, key) =>
+        IHostedAgentBuilder FinancialAgent = builder.AddAIAgent("Financial Assistant", (sp, key) =>
         {
             IClientTransport clientTransport = CreateClientTransport("http", new string[]
             {
@@ -75,9 +79,22 @@ public class Program
             );
         });
 
-        // Add logging
-        builder.Logging.AddConsole();
-        
+       
+        // Add Agent
+        IHostedAgentBuilder engTranslator = builder.AddAIAgent("English Translator", "Translate any text you get into English.");
+        IHostedAgentBuilder thaiTranslator = builder.AddAIAgent("Thai Translator", "Translate any text you get into Thai.");
+
+        builder.AddWorkflow("translation-workflow-sequential", (sp, key) =>
+        {
+            IEnumerable<AIAgent> agentsForWorkflow = new List<IHostedAgentBuilder>() { engTranslator, thaiTranslator }.Select(ab => sp.GetRequiredKeyedService<AIAgent>(ab.Name));
+            return AgentWorkflowBuilder.BuildSequential(workflowName: key, agents: agentsForWorkflow);
+        }).AddAsAIAgent();
+
+        builder.AddWorkflow("translation-workflow-concurrent", (sp, key) =>
+        {
+            IEnumerable<AIAgent> agentsForWorkflow = new List<IHostedAgentBuilder>() { engTranslator, thaiTranslator }.Select(ab => sp.GetRequiredKeyedService<AIAgent>(ab.Name));
+            return AgentWorkflowBuilder.BuildConcurrent(workflowName: key, agents: agentsForWorkflow);
+        }).AddAsAIAgent();
 
         var app = builder.Build();
 
@@ -92,7 +109,20 @@ public class Program
             app.MapDevUI();
         }
 
+        //On Client
+        //ChatClientAgent changeColorAgent = (new AGUIChatClient(httpClient, $"{serverRoot}/clientToolAgent")).CreateAIAgent(tools: [AIFunctionFactory.Create(ChangeColor)]);
+
         app.MapGet("/", () => "Hello World!");
+        //app.UseCors("Cors");
+
+        //dotnet add package Microsoft.Agents.AI.Hosting.AGUI.AspNetCore --prerelease
+        //var financialAgentInstance = app.Services.GetRequiredKeyedService<AIAgent>(FinancialAgent.Name);
+        //app.MapAGUI("/financiagent", financialAgentInstance);
+        // app.MapAGUI("/weatherAgent", weatherAgent);
+        // app.MapAGUI("/weatherAgentWithStructuredContent", new AgUiStructuredToolsOutputAgent(weatherAgentStructured, "get_weather"));
+        // app.MapAGUI("/movieAgent", new AgUiStructuredOutputAgent<MovieResult>(movieStructuredOutputAgent));
+
+        app.UseHttpsRedirection();
 
         app.Run();
     }
